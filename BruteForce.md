@@ -46,7 +46,11 @@ doRecursion(int x) x번째 for문을 실행{
   }
 ```
 
-#### #1.순열구하기
+---
+
+
+
+### #1.순열구하기
 
 > 문제: 서로 다른 n개의 원소들 중에서 r개만을 뽑아 일렬로 나열하는 것을 순열이라 한다. 예를 들어, 3개의 원소 a, b, c 중에서 2개만을 뽑아 나열하면 ab, ac, ba, bc, ca, cb 의 6가지 경우가 있다. n과 r이 주어질 때, n개의 소문자 중에서 r개만을 뽑아 나열하는 모든 경우를 출력하는 프로그램을 작성하시오. 단, a부터 시작하여 연속으로 n개의 알파벳을 갖고 있다고 하자.
 >
@@ -54,7 +58,14 @@ doRecursion(int x) x번째 for문을 실행{
 >
 > 출력: 각 줄에 n개의 소문자 중에서 r개만을 뽑아 나열하는 경우를 사전순으로 나열한 결과를 출력한다.
 
-재귀함수 사용시 앞뒤로 초기화가 중요하다!!! ,Recursive 이전에 flag[i]=true 해줬으면 재귀함수 뒤 flag[i]=false 초기화
+**알고리즘:** 
+
+- 재귀함수 이용 ***재귀함수 호출 전, 호출 후 초기화 중요 or Recursive(idx+1) 활용***
+
+- flag[0]='a' flag[1]='b' ....를 이용
+- Recursive : for(i<r) : flag[i]가 false(사용하지 않았으면) data[idx]='a'+i 
+- 종료조건 idx>=r
+- 시간복잡도: O(n*r)
 
 ``` C++
 #include <iostream>
@@ -120,6 +131,14 @@ int main()
 > 0101
 > 0011
 
+**알고리즘:** 
+
+- 재귀함수 이용
+- 내림차순 : i-- 로 for문 설계
+- Recursive(idx) : 1~0을 data[idx]에 저장
+- 종료조건 : idx>=n, data[i]를 for문을 통해 1의 갯수가 k보다 적으면 출력
+- 시간복잡도: O(n)
+
 ``` c++
 #include <iostream>
 using namespace std;
@@ -171,13 +190,22 @@ int main(int argc, const char * argv[]) {
 >
 > 자연수 n을 입력 받아 이를 n보다 작은 자연수들의 합으로 나타내는 방법을 모두 출력하는 프로그램을 재귀 호출을 사용하여 작성하시오.
 
+**알고리즘:**
+
+- 재귀함수 이용
+- 내림차순: i-- for문 이용
+- Recursive(sum, idx,maxNum) : for(maxNum~1)을 돌며 data[idx]에 저장 
+- 종료조건: if(sum>=n) 일 때 sum>n이면 그냥 종료 sum==n for(0~maxNum) 출력
+- 시간복잡도: O() 우찌 구하누?
+
 ``` c++
 
 #include <iostream>
 using namespace std;
-int flag[20]={0,};
+
 int data[20];
 int n;
+
 void Recursive(int sum,int idx,int maxNum){
     if(sum>=n){
         if(sum==n){
@@ -193,7 +221,6 @@ void Recursive(int sum,int idx,int maxNum){
         sum+=i;
         data[idx]=i;
         Recursive(sum,idx+1,i);
-        flag[i]--;
         sum-=i;
     }
     
@@ -205,7 +232,94 @@ int main(){
 
 ```
 
+### #3.Dessert
 
+>  문제: 농부 존은 소들의 저녁식사 줄 세우는 새로운 방법을 개발 했다. N(1~15)마리의 소들을 순서대로 세 워놓은 후, 각 소들 사이에 +, - , . 셋 중 1가지가 써져있는 냅킨을 배치해서 최종 결과가 0 이 되게 해야 하는 것이다. 점(.)이 써져있는 냅킨을 통해 더 큰 수를 만들 수 있게 된다. 아래와 같은 경우를 보자. (ps .이 써져있는 냅킨은 '공백'이라고 생각하면 된다.) 1-2.3-4.5+6.7 이와 같은 배치는 1-23-45+67 을 나타낸다. 결과는 0 이다. 10.11은 1011 로 해석된다.
+>
+>  입력: 첫 째 줄에는 소들의 수 N(1 ≤ N ≤ 15)이 입력된다.
+>
+>  출력: 처음 20줄에 대해 가능한 20가지 답을 출력하는데, 사전 순으로 앞선 것을 출력한다. 순서는 +가 가장 앞서고 -와 . 이 순서대로 뒤따른다. 답이 20개 이하라면 가능한 답을 각 숫자와 문자 사이에 공백을 두고 출력한다. 모두 출력한다. 20개를 초과하는 경우 21번째 답부터는 출력하지 않는다. 마지막 줄에는 가능한 답의 총 가지수를 출력한다.
+>
+> 예제 입력
+> 7
+> 예제 출력
+> 1 + 2 - 3 + 4 - 5 - 6 + 7
+> 1 + 2 - 3 - 4 + 5 + 6 - 7
+> 1 - 2 + 3 + 4 - 5 + 6 - 7
+> 1 - 2 - 3 - 4 - 5 + 6 + 7
+> 1 - 2 . 3 + 4 + 5 + 6 + 7
+> 1 - 2 . 3 - 4 . 5 + 6 . 7
+> 6
+
+**소요시간: 90분**
+
+**알고리즘:**
+
+- 핵심:  `.`의 처리이다. 이를 처리하기 위해 `.`  전까지만 계산해야 한다. 이를 위해 Recursive 재귀함수를 돌면서 idx함수속에서 idx-1까지 계산해야 한다.   
+
+``` c++
+#include <iostream>
+using namespace std;
+const int MAX=17;
+// idx==0,1일 경우 sum에 sign부호에 맞춰 var 계산 var에 idx전달
+// idx==2일 경우 sum 그대로, sign 그대로 var에 var*10+idx 전달
+// 10이 넘어갈 경우 && idx==2인 경우 var*100
+// 1.2.3인경우 그냥 똑같이 *10 해주면 된다.
+// data[]에 부호 저장, 출력을 위해
+// 시작점은 1부터 sum=0 var=0
+// 종료점은 빼서 계산
+int n;
+char data[MAX];
+int cnt=0;
+
+void Recursive(int idx, int sum, int sign, int var){
+    if(idx>=n){ //기저조건
+        if(sign==0)
+            sum+=var+idx;
+        else
+            sum-=(var+idx);
+        if(sum==0){
+            if(cnt<=20){
+                for(int i=1;i<n;i++)
+                    cout<<i<<" "<<data[i]<<" ";
+                cout<< n<<"\n";
+            }
+            cnt++;
+        }
+        return;
+    }
+    for(int i=0;i<3;i++){
+        if(i==0){
+            data[idx]='+';
+            if(sign==0)
+                Recursive(idx+1,sum+var+idx,i,0);
+            else
+                Recursive(idx+1,sum-var-idx,i,0);
+        }
+        else if(i==1){
+            data[idx]='-';
+            if(sign==0)
+                Recursive(idx+1,sum+var+idx,i,0);
+            else
+                Recursive(idx+1,sum-var-idx,i,0);
+        }
+        else if(i==2 && idx<n){
+            data[idx]='.';
+            if(idx<9)
+                Recursive(idx+1,sum,sign,(var+idx)*10);
+            else
+                Recursive(idx+1,sum,sign,(var+idx)*100);
+        }
+    }
+}
+int main(int argc, const char * argv[]) {
+    // insert code here...
+    cin>>n;
+    Recursive(1,0,0,0);
+    cout<<cnt;
+}
+
+```
 
 
 
