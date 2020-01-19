@@ -107,9 +107,7 @@ int main(){
         cin>>var;
         arr.push_back(var);
     }
-    cout<<ParameterSearch(0,n-1);
-    
-    
+    cout<<ParameterSearch(0,n-1);    
 }
 
 ```
@@ -146,9 +144,35 @@ int main(){
 > 예제 출력
 > ---
 >
+> 
+>
 > 6
 
-소요시간:40분
+**소요시간:40분**
+
+**알고리즘:**
+
+ 처음 생각했던 방법은 이중 for문을 이용해 구구단표 숫자를 하나씩 입력받는 대신 해당 숫자를 인덱스로 가지는 배열을 ++해주려고 했다. 하지만 이는 O(n^2)의 시간복잡도를 가져 Timeout이다. 따라서 일반 브루트포스 방법으로는 시간내에 해결하지 못한다.
+
+ **Parametersearch을 사용한 최종 알고리즘**
+
+1. 전체 1~n*n 범위에서 중간값을 선택해 해당 숫자가 몇번째인지 구할 것이다.  (getOrder)
+
+2. 도출해낸 숫자의 순서가 k보다 크면 Parametersearch(s,mid), 작으면 Parametersearch(mid,e)
+
+3. 기저조건(s+1>=e)까지 반복하면 k값 순서를 가지는 수가 s or e일 것이다.
+
+4. 해당 숫자가 몇번째인지 구하는 getOrder(num)는 구구단표의 행을 기준으로 for문을 돌려 해당행의 최대수인 n*idx가 num보다 작으면 해당 행은 모든 수가 num보다 작다. 또한 num보다 큰 경우 해당 행은 num/idx만큼 num보다 작은 수를 가지고 있다. 이를 통해 전체 행렬에서 num보다 작은 수를 구할 수 있고 중복되는 num들 바로 전 숫자들의 최대 순서를 알 수 있다. 즉 1 2 2 4 4 4 5 5 에서 4의 순서를 getOrder를 통하면 1 2 2를 구해내 3이라는 숫자를 알아낼 수 있다. 
+
+5. 이를 통해 구한 숫자가 order>=k ? true:false을 통해 반환하면서 true가 반환되면 (s,mid)가 들어가고이 때는 order==k일 수도 있으니 e값에 들어가는  mid가 정답일 수 있다. 그러나 false가 반환되면 (mid,e)가 들어간다. 이 때 order==k일 수 없기 때문에 s값에 들어가는 mid가 정답일 수 없다. 따라서 s+1>=e에서 우리가 찾는 값은 e이다.
+
+
+
+**핵심**
+
+**1. Parametersearch 생각!!!**
+
+**2. 중복되는 숫자들의 순서 처리 -> getorder 반환 및 s, e를 동일한 논리로 설계**
 
 ``` c++
 //1 2 3 4 5
@@ -194,7 +218,98 @@ long int ParameterSearch(long int s,long int e){
 int main(){
     cin>>n>>k;
     cout<<ParameterSearch(1,n*n);
-    
 }
 ```
 
+# #3. 중복되지않는 구간
+
+> ## 문제
+>
+> n개의 숫자 중 r개의 연속된 숫자를 선택했을 때, 이 연속 부분 내에서 중복되지 않기를 원한다.
+>
+> 1 3 1 2 4 2 1 3 2 1
+>  위 숫자배열에서 최대연속구간은 4 2 1 3 ->4이다. 또는 3 1 2 4
+>
+>  1<=n<=100,000
+>
+> ## 출력
+>
+> 최대연속구간길이
+>
+> ## 예제 입력
+>
+> 10
+> 1 3 1 2 4 2 1 3 2 1
+>
+> ## 예제 출력
+>
+> 4
+
+**소요시간: 60분**
+
+**알고리즘:**
+
+ 1. 브루트 포스 이중포문으로 하나하나 확인 O(n^2) 불가
+ 2. 이러한 구간 찾기 -> parametersearch생각
+ 3. 구간의길이를 기준으로 parametersearch 설계  구간의 길이 1 2 3 4 5 6 7 8 9 10
+ o o o o o x x x x x --> 경계값 5도출 s+1>=e 에서 s출력
+ 4. 시간복잡도: 해당구간의 길이 중복여부 n  parametersearch log n  -> O(nlogn)
+  5. 중복체크 알고리즘: visited를 둬 체크되어있으면 start증가시켜 중복안되는 구간 만들고 다음 인덱스 확인 O(n)
+
+***핵심***
+
+***2. parametersearch(s,e) 처음 s와 e 범위를 정할 때(1,n)일시 전체구간에 중복이 없을 때 s를 return하면 s=n-1되서 잘못 출력 따라서 이러한 경계조건 s,e을 줄 떄 s=무조건 가능한값 e=무조건 불가능한 값으로 줘야한다.***
+
+***1. 중복체크 알고리즘 다시보기***
+
+``` c++
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int n;
+vector <int> arr;
+
+// length만큼의 구간에 중복체크
+bool isOverlap(int length){
+    bool visited[101010];
+    int start=0,current_length=0;
+    for(int i=0;i<n;i++)
+    {
+        while(visited[arr[i]]){
+            visited[arr[start++]]=false;
+            current_length--;
+        }
+        current_length++;
+        visited[arr[i]] = true;
+        if(current_length>=length)
+            return true;
+        
+    }
+    return false;
+}
+int parametersearch(int s,int e){
+    if(s+1>=e)
+        return s;
+    int mid=(s+e)/2;
+    if(isOverlap(mid))
+        return parametersearch(mid,e);
+    else
+        return parametersearch(s,mid);
+    
+}
+int main(){
+    cin>>n;
+    for(int i=0;i<n;i++){
+        int var;
+        cin>>var;
+        arr.push_back(var);
+    }
+    cout<<parametersearch(1,n+1); // (1,n)일시 전체구간에 중복이 없을 때 s=n-1되서 잘못출력
+    //따라서 이러한 경계조건 s,e을 줄 떄 s=무조건 가능한값 e=무조건 불가능한 값으로 줘야한다.
+}
+
+
+```
+
+*내 알고리즘이 정확히 어뜨케 돌아가는지 모른다. 확실히 설계하고 알고리즘짜기!!!!!!

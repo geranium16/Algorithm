@@ -1,71 +1,69 @@
-//NN단표 (NNdan.cpp)
-//
-//
-//문제
-//알랩이는 구구단표처럼 NN단표를 만들었다고 한다.
-//
-//NN단표는 2차원 배열의 모양으로 곱셈 1단부터 N단까지의 값들을 적어놓은 형태이다.
-//
-//NN단표의 배열을 A라고 했을 때, 배열의 들어가는 수 A[i][j]=i*j이다.(즉, 4행 7열에는 28, 7행 5열에는 35가 들어가 있다.)
-//
-//알랩이는 N단까지 나온 숫자들 중에서 K번째로 작은 수를 찾고 싶어한다.
-//
-//이때, 중복되는 여러 수들을 고려한다. 즉 N*N개의 모든 수들 중에서 K번째 수를 구하는 것이다.
-//
-//입력
-//첫째 줄에 배열의 크기 N이 주어진다. N은 100,000보다 작거나 같은 자연수이다. 둘째 줄에 K가 주어진다. K는 N*N보다 작거나 같고, 10,000,000,000보다 작거나 같은 자연수이다.
-//
-//출력
-//K번째 원소를 출력한다.
 
-//예제 입력
-//3
-//7
-//예제 출력
-//6
-
-//1 2 3 4 5
-//2 4 6 8 10
-//3 6 9 12
-//4 8 12 16
-
-//1번6을 찾는다.
-//-> 1:if(n<6) ->n개 else n개
-//-> 2:if(n*2<6) n개     else num/2개
-//-> 3:              else n/3개
-//...... O(n) 걸림 최댜 100,000
-//2번: parametersearch이용 lonn 총 nlogn
-//1 2 2 3 3 3 4 4 4 4 k=5
-//      O O    // X O 경계조건에서 찾아야함
-//즉, 1번과정에서 같은 숫자를 포함하면 if(s+1>=e) 조건에서 e를 출력해야한다.
+/*
+ 문제
+ n개의 숫자 중 r개의 연속된 숫자를 선택했을 때, 이 연속 부분 내에서 중복되지 않기를 원한다.
+ 
+ 1 3 1 2 4 2 1 3 2 1
+ 위 숫자배열에서 최대연속구간은 4 2 1 3 ->4이다. 또는 3 1 2 4
+ 
+ 
+ 1<=n<=100,000
+ 
+ 10
+ 1 3 1 2 4 2 1 3 2 1
+ 
+ */
+/*
+ 1. 브루트 포스 이중포문으로 하나하나 확인 O(n^2) 불가
+ 2. 이러한 구간 찾기 -> parametersearch생각
+ 3. 구간의길이를 기준으로 parametersearch 설계  구간의 길이 1 2 3 4 5 6 7 8 9 10
+ o o o o o x x x x x --> 경계값 5도출 s+1>=e 에서 s출력
+ 4. 시간복잡도: 해당구간의 길이 중복여부 n  parametersearch log n  -> O(nlogn)
+ */
 #include <iostream>
+#include <vector>
 using namespace std;
 
-long int n,k;
-bool getOrder(long int num){
-    long int order=0;
-    for(int i=1;i<=n;i++){
-        if(n*i<=num)
-            order+=n;
-        else
-            order+=num/i;
+int n;
+vector <int> arr;
+
+// length만큼의 구간에 중복체크
+bool isOverlap(int length){
+    bool data[101010];
+    int start=0,current_length=0;
+    for(int i=0;i<n;i++)
+    {
+        while(data[arr[i]]){
+            data[arr[start++]]=false;
+            current_length--;
+        }
+        current_length++;
+        data[arr[i]] = true;
+        if(current_length>=length)
+            return true;
+        
     }
-    return order>=k ? true:false;
+    return false;
     
 }
-
-long int ParameterSearch(long int s,long int e){
+int parametersearch(int s,int e){
     if(s+1>=e)
-        return e;
-    long int mid=(s+e)/2;
-    if(getOrder(mid))
-        return ParameterSearch(s,mid);
+        return s;
+    int mid=(s+e)/2;
+    if(isOverlap(mid))
+        return parametersearch(mid,e);
     else
-        return ParameterSearch(mid,e);
+        return parametersearch(s,mid);
     
 }
 int main(){
-    cin>>n>>k;
-    cout<<ParameterSearch(1,n*n);
-    
+    cin>>n;
+    for(int i=0;i<n;i++){
+        int var;
+        cin>>var;
+        arr.push_back(var);
+    }
+    cout<<parametersearch(1,n+1); // (1,n)일시 전체구간에 중복이 없을 때 s=n-1되서 잘못출력
+    //따라서 이러한 경계조건 s,e을 줄 떄 s=무조건 가능한값 e=무조건 불가능한 값으로 줘야한다.
 }
+
