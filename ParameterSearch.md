@@ -313,3 +313,85 @@ int main(){
 ```
 
 *내 알고리즘이 정확히 어뜨케 돌아가는지 모른다. 확실히 설계하고 알고리즘짜기!!!!!!
+
+
+
+# #4.나무자르기
+
+> // (1 ≤ N ≤ 1,000,000, 1 ≤ M ≤ 2,000,000,000)
+>
+> //높이는 1,000,000,000보다 작거나 같은 자연수이다.
+>
+> 
+>
+> //목표:h 절단기에 설정할 수 있는 높이의 최대값
+>
+> //이때 적어도 M미터의 높이는 1,000,000,000보다 작거나 같은 자연수이다.
+>
+> 
+>
+> 
+>
+> // 4 7
+>
+> // 20 15 10 17
+>
+> //15
+>
+> 
+>
+> //h: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+>
+> // x x x x x x x x x o o o o o o o o o
+>
+> //h로 짤랏을때 목표를 만족하는 값을 충족하고 충족하지 못하는 경계선이 있을 것이다.
+>
+> 
+>
+> 
+>
+> //n은 나무갯수 m=목표높이
+>
+> //ParameterSearch를 이용해 경계값 찾기
+
+
+
+``` c++
+#include <iostream>
+#include <vector>
+using namespace std;
+
+long int n,m;
+vector <long int> arr;
+long int ParameterSearch(long int s,long int e){
+    
+    if(s+1>=e) // s를 출력할건지 e를 출력한건지는 아랫부분
+        return s;
+        
+    long int mid=(s+e)/2;
+    long int sum=0;
+    for(int i=0;i<n;i++){
+        if(arr[i]>mid)
+            sum+=(arr[i]-mid);
+    }
+    if(sum>=m)   //이 부분에 달려있다. ==이 어디에 있냐 
+        return ParameterSearch(mid,e);
+    else
+        return ParameterSearch(s,mid);
+}
+int main(){
+    cin>>n>>m;
+    long int maxheight=0;
+    for(int i=0;i<n;i++){
+        long int temp;
+        cin>>temp;
+        arr.push_back(temp);
+        if(maxheight<temp)
+            maxheight=temp;
+    }
+    cout<<ParameterSearch(0,maxheight);
+    
+}
+
+```
+

@@ -1,69 +1,57 @@
+//문제:거듭제곱구하기L
+//
+//n과 m이 주어질 때, n의 m승을 구하는 프로그램을 작성하시오. 단, n의 m승의 값이 커질 수 있기 때문에, 정답을 10,007 으로 나눈 나머지를 출력한다.
+//
+//
+//
+//입력
+//첫 번째 줄에 숫자 n과 m이 주어진다. ( 1 ≤ n ≤ 100, 1 ≤ m ≤ 1,000,000,000,000,000,000 )
+//
+//출력
+//첫째 줄에 n의 m승을 10,007 으로 나눈 나머지를 출력한다.
+//
+//
+//
+//예제 입력
+//copy3 4
+//예제 출력
+//copy81
 
-/*
- 문제
- n개의 숫자 중 r개의 연속된 숫자를 선택했을 때, 이 연속 부분 내에서 중복되지 않기를 원한다.
- 
- 1 3 1 2 4 2 1 3 2 1
- 위 숫자배열에서 최대연속구간은 4 2 1 3 ->4이다. 또는 3 1 2 4
- 
- 
- 1<=n<=100,000
- 
- 10
- 1 3 1 2 4 2 1 3 2 1
- 
- */
-/*
- 1. 브루트 포스 이중포문으로 하나하나 확인 O(n^2) 불가
- 2. 이러한 구간 찾기 -> parametersearch생각
- 3. 구간의길이를 기준으로 parametersearch 설계  구간의 길이 1 2 3 4 5 6 7 8 9 10
- o o o o o x x x x x --> 경계값 5도출 s+1>=e 에서 s출력
- 4. 시간복잡도: 해당구간의 길이 중복여부 n  parametersearch log n  -> O(nlogn)
- */
+//Recursive 10승씩
+//마지막남은건
+//Recursive 내용 :
+
+
+
 #include <iostream>
-#include <vector>
 using namespace std;
 
 int n;
-vector <int> arr;
+long int m;
 
-// length만큼의 구간에 중복체크
-bool isOverlap(int length){
-    bool data[101010];
-    int start=0,current_length=0;
-    for(int i=0;i<n;i++)
-    {
-        while(data[arr[i]]){
-            data[arr[start++]]=false;
-            current_length--;
-        }
-        current_length++;
-        data[arr[i]] = true;
-        if(current_length>=length)
-            return true;
+//x*x의 나머지는 y=x의나머지*x의나머지 만약 y가 x보다크면 y/x의 나머지와 같다. 따라서 n^m을하고 10007을 하는것이 아닌 계속해서 n%10007을하며 나머지만 제곱해서 끌고 가면된다.
+//거듭제곱으로 올라가기 but 끝지점쯤에서 1024, 2048 사이의 값이면 일일이 계산해야하는 부분이 많다.
+//따라서 거듭제공으로 내려오기 짝수 : 2024/2 홀수 :5-1
+//기저조건: x==1 n^1이기때문에 n자체
+
+long int Recursive(long int x){
+    if(x==1)
+        return n;
+    
+    
+    if(x%2==0){
+        long int y = Recursive(x/2);
+        return (y*y)%10007;
         
     }
-    return false;
+    else{
+        long int y = Recursive(x-1);
+        return (y*n)%10007;
+    }
     
-}
-int parametersearch(int s,int e){
-    if(s+1>=e)
-        return s;
-    int mid=(s+e)/2;
-    if(isOverlap(mid))
-        return parametersearch(mid,e);
-    else
-        return parametersearch(s,mid);
     
 }
 int main(){
-    cin>>n;
-    for(int i=0;i<n;i++){
-        int var;
-        cin>>var;
-        arr.push_back(var);
-    }
-    cout<<parametersearch(1,n+1); // (1,n)일시 전체구간에 중복이 없을 때 s=n-1되서 잘못출력
-    //따라서 이러한 경계조건 s,e을 줄 떄 s=무조건 가능한값 e=무조건 불가능한 값으로 줘야한다.
+    cin>>n>>m;
+    cout<<Recursive(m);
 }
-
