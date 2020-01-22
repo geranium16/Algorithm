@@ -1,4 +1,4 @@
-# #3. 거듭제곱구하기L
+# #1. 거듭제곱구하기L
 
 > ## 문제
 >
@@ -76,12 +76,139 @@ int main(){
     cin>>n>>m;
     cout<<Recursive(m);
 }
-
 ```
 
 
 
+# 2. goodseq
 
+> ### 문제
+>
+> ---
+>
+>  숫자 1, 2, 3으로만 이루어지는 수열이 있다. 임의의 길이의 인접한 두 개의 부분 수열이 동일한 것 이 있으면, 그 수열을 나쁜 수열이라고 부른다. 그렇지 않은 수열은 좋은 수열이다.
+>
+> 다음은 나쁜 수열의 예이다.
+>
+> 33
+>
+> 32121323
+>
+> 123123213
+>
+> 
+>
+> 다음은 좋은 수열의 예이다.
+>
+> 2
+>
+> 32
+>
+> 32123
+>
+> 1232123
+>
+> 
+>
+> 길이가 N인 좋은 수열들을 N자리의 정수로 보아 그중 가장 작은 수를 나타내는 수열을 구하는 프로그램 을 작성하라. 예를 들면, 1213121과 2123212는 모두 좋은 수열이지만 그 중에서 작은 수를 나타내는 수 열 1213121이다.
+>
+> 
+>
+> ### 입력
+>
+> ---
+>
+> 입력은 숫자 N하나로 이루어진다. N은 1 이상 80 이하이다.
+>
+> 
+>
+> ### 출력
+>
+> ---
+>
+> 첫 번째 줄에 1, 2, 3으로만 이루어져 있는 길이가 N인 좋은 수열들 중에서 가장 작은 수를 나타내 는 수열만 출력한다. 수열을 이루는 1, 2, 3들 사이에는 빈칸을 두지 않는다.
+>
+> 
+>
+> ### 예제 입력
+>
+> ---
+>
+> 7
+>
+> ### 예제 출력
+>
+> ---
+>
+> 1213121
+
+
+
+**소요시간: 120분**
+
+**알고리즘:**
+
+1. GoodSeq은 수열의 어느곳에서든 GoodSeq이여야한다. 따라서 재귀함수를 이용해 idx=0부터 수를 입력받을 시 해당 idx를 끝으로하는 수열이 GoodSeq이면 해당수까지는 GoodSeq이다. 따라서 재귀함수를 이용해 수를 입력받고 해당 수를 포함하는 모든 숫자열이 GoodSeq인지 검사하는 함수를 작성할 것이다.
+2. `bool goodseq(int s1,int e1,int s2,int e2)`:  해당 idx=10일 때 data[9]==data[10]인지, 같으면 이는 무조건 BadSeq이다. GoodSeq이면 끝이아니고 idx2=7~8, idx2=9~10이 GoodSeq인지 확인해야한다. 이를 idx2=0~idx/2 , idx2=idx/2+1~idx까지 확인해야한다.  따라서 위와 같은 기능을 정리하면
+   - 시작점은 idx-1=s1=e1,idx=s2=e2부터 시작해서 s1=s1-2,e1-1,s2=s2-1,e2=e2  구간을 1씩을 늘려가며 s1<0일 때까지 goodseq 함수를 반복해야 한다.
+   - 이 재귀함수내에서 BadSeq가 하나도 발견되지 않아야 최종 GoodSeq반환, 하나라도 나오면 종료하고 BadSeq반환
+   - seq확인법은 for(i) data[s1+i]==data[s2+i] 로 확인
+
+***핵심***
+
+***bool goodseq(int s1,int e1,int s2,int e2) 알고리즘 생각***
+
+***시간복잡도? 1초안에 들어오는지 확인불가 / 설계단계에서 우짜노! ***
+
+
+
+``` c++
+#include <iostream>
+using namespace std;
+const int MAX=100;
+int n;
+int sol[MAX];
+bool finish=false;
+
+bool goodseq(int s1,int e1,int s2,int e2)
+{
+    if(s1<0)
+        return true;
+    for(int i=s1;i<=e1;i++)
+    {
+        if(sol[i]!=sol[i-s1+s2])
+            return goodseq(s1-2,e1-1,s2-1,e2);
+        
+    }
+    return false;
+}
+void recursive(int idx)
+{
+    if(idx>=n)
+    {
+        for(int i=0;i<n;i++)
+            cout<<sol[i];
+        finish=true;
+        return;
+    }
+    
+    for(int i=1;i<=3;i++)
+    {
+        sol[idx]=i;
+        if(goodseq(idx-1,idx-1,idx,idx))
+            recursive(idx+1);
+    
+        if(finish)
+            return;
+    }
+}
+int main()
+{
+    cin>>n;
+    sol[0]=1;
+    recursive(1);
+}
+```
 
 
 
