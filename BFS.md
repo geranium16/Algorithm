@@ -1,3 +1,10 @@
+### #1. 목수의미로탈출
+
+> 
+
+
+
+``` c++
 
 /*
  -출발점: (n-1,0) 도착점: (0,m-1)
@@ -17,14 +24,17 @@ int visited[MAX][MAX];
 int visited2[MAX][MAX];
 
 pair<int,int> dir[4]={{-1,0},{0,1},{1,0},{0,-1}};
+
 bool range(pair<int,int> node){
     return (0<=node.first && node.first<n && 0<=node.second && node.second<m );
 }
+
 bool inspect(pair<int,int> node){
     return node.first==0 && node.second==m-1;
 }
+
 void BFS(pair<int,int> start){
-    //cout<<("a\n");
+  
     queue <pair<pair<int,int>,bool>> q;
     q.push({{start.first,start.second},false});
     visited[start.first][start.second]=1;
@@ -32,39 +42,29 @@ void BFS(pair<int,int> start){
     
     while(!q.empty()){
         pair<pair<int,int>,bool> current=q.front();
-       // cout<<current.first.first<<", "<<current.first.second<<"\n";
         q.pop();
-//        for(int i=0;i<n;i++){
-//            for(int k=0;k<m;k++)
-//                cout<<visited2[i][k]<<" ";
-//            cout<<"\n";
-//        }
-//        cout<<"\n";
         for(int j=0;j<4;j++){
-            //            cout<<("b");
             pair<pair<int,int>,bool> next={{current.first.first+dir[j].first,current.first.second+dir[j].second},current.second};
            
-            //맵안에 들어오는 경우
-            if(range(next.first)){
-                //                cout<<"c";
-                // 벽이 없을 경우
-                if(!mymap[next.first.first][next.first.second]){
-                    //맵1 방문 안했을 경우
-                    if(visited[next.first.first][next.first.second]==0){
-                        //아이템X 경우 = 아이템을 안썻을 경우에만 맵1,맵2 방문
-                        if(!next.second){
+           
+            if(range(next.first)){ //맵안에 들어오는 경우
+                if(!mymap[next.first.first][next.first.second]){ // 벽이 없을 경우
+                    if(visited[next.first.first][next.first.second]==0){   //맵1 방문 안했을 경우
+                        if(!next.second){    //아이템X 경우 = 아이템을 안썻을 경우에만 맵1,맵2 방문
                             visited[next.first.first][next.first.second]=visited[current.first.first][current.first.second]+1;
                             visited2[next.first.first][next.first.second]=visited2[current.first.first][current.first.second]+1;
                             q.push(next);
-                            if(inspect(next.first)){
+                          
+                            if(inspect(next.first))
                                 return;
-                            }
+                            
                         }
                         //아이템O 경우 && 맵2 방문X인 경우 맵2만 방문
                         else if(visited2[next.first.first][next.first.second]==0){
                             visited2[next.first.first][next.first.second]=visited2[current.first.first][current.first.second]+1;
                             q.push(next);
-                            if(inspect(next.first))
+                            
+                        		if(inspect(next.first))
                                 return;
                         }
                     }
@@ -77,7 +77,6 @@ void BFS(pair<int,int> start){
                     if(inspect(next.first))
                         return;
                 }
-                
             }
         }
     }
@@ -96,3 +95,5 @@ int main(){
     else
         cout<<visited2[0][m-1]-1;
 }
+```
+
