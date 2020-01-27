@@ -1,60 +1,130 @@
-5
-10
-0 1 0 3 0 0 0 0 7 0
-0 0 0 0 -1 0 5 0 0 0
-0 4 0 0 0 3 0 0 2 2
-1 0 0 0 1 0 0 3 0 0
-0 0 3 0 0 0 0 0 6 0
-3 0 0 0 2 0 0 1 0 0
-0 0 0 0 0 1 0 0 4 0
-0 5 0 4 1 0 7 0 0 5
-0 0 0 0 0 1 0 0 0 0
-2 0 6 0 0 4 0 0 0 4
-6
-1 1 1 1 1 1
-1 1 -1 1 1 1
-1 -1 0 -1 1 1
-1 1 -1 1 1 1
-1 1 1 1 1 1
-1 1 1 1 1 1
-8
-0 0 0 3 0 0 0 0
-0 0 2 0 0 5 0 0
-0 0 5 0 3 0 0 0
-0 0 1 1 0 0 0 4
-0 0 0 0 0 0 0 0
-0 0 0 0 0 0 5 0
-0 0 4 0 0 3 1 0
-2 0 0 4 3 4 0 0
-10
-0 4 0 0 0 0 4 0 5 0
-0 0 0 0 0 0 0 0 3 0
-0 0 0 5 6 0 0 0 0 2
-3 0 0 1 0 0 1 4 0 2
-2 0 0 0 0 5 0 0 5 0
-0 0 1 0 2 0 0 0 5 0
-0 0 0 0 0 0 6 1 0 0
-0 0 1 0 2 0 2 4 0 0
-0 0 0 0 0 0 2 0 0 0
-2 0 0 0 0 0 0 3 0 0
-20
-0 0 1 0 0 0 0 3 0 3 0 0 0 4 0 0 1 0 4 0
-0 1 2 3 3 0 0 0 0 0 0 0 0 5 0 0 0 0 5 0
-0 0 0 0 0 0 0 0 0 5 0 0 0 5 0 4 0 0 0 0
-4 0 0 0 0 0 0 4 5 0 0 0 3 0 0 0 3 0 0 0
-0 0 0 3 0 4 1 0 3 0 0 0 0 4 0 0 0 2 0 3
-2 2 0 0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 5 0 5 0 0 0 3 4
-0 0 5 0 -1 5 0 0 5 2 0 0 0 4 2 0 0 3 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0
-2 0 0 0 0 3 0 0 3 3 3 0 0 1 0 0 2 0 0 0
-1 5 0 5 0 0 0 0 5 4 5 0 0 0 0 4 2 4 0 0
-0 4 0 0 0 1 3 0 0 0 0 0 1 0 3 0 0 2 0 0
-0 0 0 0 0 0 3 0 1 0 0 1 0 0 0 0 0 3 4 0
-0 4 0 4 0 0 0 0 0 0 0 2 0 0 0 3 0 0 0 2
-0 5 0 0 0 4 1 5 0 0 0 2 0 0 0 0 0 0 0 0
-0 0 0 5 0 0 1 2 0 0 0 3 1 2 5 0 0 0 0 0
-0 4 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 4 0 0 0 0 4 0 0 0 0 0 0 1 4 0 2 0
-0 0 1 0 0 0 0 0 3 0 0 0 0 0 0 0 5 0 0 0
-0 0 0 0 0 0 0 5 0 4 0 0 0 0 0 2 0 0 2 0
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+#define MAX  12
+#define INF 987987987
+class person{
+public:
+    int x;
+    int y;
+    int pstair=0;
+    int stairnum=0;
+    int move=0;
+    int destination=0; //0: move 1:계단도착 2:내려가는중 3.최종도착
+    person(int x,int y):x(x),y(y){};
+};
+
+
+int n;
+int sol;
+int arrive;
+int mymap[MAX][MAX];
+vector <person> people;
+vector <person> people_c;
+vector <pair<int,pair<int,int>>> stair;
+int stairpeople[2]={0,};
+
+void clear(){
+    people.clear();
+    stair.clear();
+    people_c.clear();
+    stair.clear();
+    stairpeople[0]=0;
+    stairpeople[1]=0;
+    sol=INF;
+}
+
+void DFS(int sec){ //for문 세개로 나눠서 돌리지 않으면 계단이 꽉차고 7번사람이 계단 도착했을 때 1번사람이 이용불가
+    //따라서 각 기능마다 따로 for문 돌림
+    
+    if(sol<=sec){ //최소시간보다 높아지면 끝내버림
+        return;
+    }
+    if(arrive>=people_c.size()){ //사람들이 다 내려왔다는거는 최소시간 같거나 적다는 것
+        sol=sec;
+        return;
+    }
+    bool flag[MAX]={false,};
+    
+    for(int i=0;i<people_c.size();i++){
+        
+        if(people_c[i].destination==0){
+            if(people_c[i].move>0)
+                people_c[i].move--;
+            
+            else{
+                people_c[i].move--;
+                people_c[i].destination=1;
+            }
+            flag[i]=true;
+        }
+    }
+    
+    for(int i=0;i<people_c.size();i++){
+          if(!flag[i]&&people_c[i].destination==1 && stairpeople[people_c[i].pstair]<3){
+              people_c[i].destination=2;
+              people_c[i].stairnum--;
+              stairpeople[people_c[i].pstair]++;
+              flag[i]=true;
+          }
+    }
+    
+    for(int i=0;i<people_c.size();i++){
+        
+        if(!flag[i]&&people_c[i].destination==2){
+            people_c[i].stairnum--;
+            if(people_c[i].stairnum==0){
+                people_c[i].destination=3;
+                stairpeople[people_c[i].pstair]--;
+                arrive++;
+            }
+        }
+    }
+    
+    DFS(sec+1);
+}
+
+void setPeople(int idx){ // 사람들이 이용할 계단 선정
+    if(idx>=people.size()){ //선정 다했으면 DFS 들간다.
+        people_c.clear();
+        stairpeople[0]=0;
+        stairpeople[1]=0;
+        for(int i=0;i<people.size();i++)
+            people_c.push_back(people[i]);
+        arrive=0;
+        DFS(0);
+        return;
+    }
+    
+    for(int i=0;i<2;i++){
+        people[idx].pstair=i;
+        people[idx].stairnum=stair[i].first;
+        people[idx].move=abs(people[idx].x-stair[i].second.first)+abs(people[idx].y-stair[i].second.second);
+        setPeople(idx+1);
+    }
+}
+
+int main(){
+    
+    int testcase;
+    cin>>testcase;
+    
+    for(int t=1;t<=testcase;t++){
+        clear();
+        cin>>n;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++){
+                cin>>mymap[i][j];
+                if(mymap[i][j]==1)
+                    people.push_back(person(i,j));
+                else if(2<=mymap[i][j]&&mymap[i][j]<=10)
+                    stair.push_back({mymap[i][j],{i,j}});
+            }
+        }
+        setPeople(0);
+        cout<<"#"<<t<<" "<<sol<<"\n";
+    }
+}
