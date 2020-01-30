@@ -1,58 +1,8 @@
-# #2382. [모의 SW 역량테스트] 미생물 격리
-
-> [문제]: https://swexpertacademy.com/main/code/problem/problemDetail.do?contestProbId=AV597vbqAH0DFAVl&categoryId=AV597vbqAH0DFAVl&categoryType=CODE&&&&&&
->
-> 종류: 시뮬레이션
->
-> 소요시간: 3시간
-
-**풀이:** 
-
-주어진 testcase,n등 여러 조건등을 보아 크게 시간복잡도를 신경쓰지 않아도 될 것이라 생각하였고 시뮬레이션 문제로 문제가 요구하는 사항을 구현하는 것이 주였다. 첫 문제를 구현했을 때 문제를 대충읽고 시작하여 코드를 다 뒤엎었다.
-
-- 조건 정리
-  1. 1시간 마다 이동(한칸)
-  2. 약품지역 도착시 -> 미생물/2, 이동방향 반대, 군집 사라짐
-  3. 두 군집이상 모이면 합침, 미생물의 수가 가장많은 군집의 이동방향을 따라간다.
-
-- 구조
-
-  1. 군집 모두 이동시키기
-
-  2. 조건 해결
-
-     - 약품지역 도착시 - 미생물/2, 방향전환 (dir2[]={0,2,1,4,3} 이용) , 여기서 두개이상 군집이 모일 경우X
-
-     - 두개이상 군집이 모일시 - 현재 군집idx에 모든 것을 갱신할 것이다.
-
-       1. 군집 모인 것 확인하는 방법: 벡터 map에  idx를 push 넣어 줄 것이다. map의 현재 위치 size가 1보다 커지면 두개이상 군집이 모인 것이다.
-
-       2. 군집들의 n 더해주기
-
-       3. n이 가장 큰 군집의 dir를 뽑아 현재 군집에 갱신
-       4. 
-
-     여기서 부가적으로 주어야할 조건
-
-     - 미생물==0이면 죽은 군집으로 빼줘야한다. 따라서 위 구조에 미생물==0이면 빠져나오게 해야한다.
-     - map을 이용해서 위치별 군집 idx를 넣어줄 것이다. 위치가 바뀌거나 군집이 사라질 때 이를 빼줘야 한다. 이는 군집을 이동시킬 때 어차피 모든 map의 요소들의 위치가 바뀌어야한다. 따라서 군집 이동 전 다 clear해주면 깔끔하게 해결된다.
-
-***핵심***
-
-- ***무조건 문제를 완벽히 제대로 읽고 조건 정리 및 worst case를 생각하자!!!***
-- ***클래스에 pair를 넣거나 pair에 pair에 넣는 등 이러한 방법은 코드 길이가 길어지고 이해하기 힘들어진다. 최대한 짧고 간결하게 int x,int y 기본형으로 넣자***
-- ***erase를 이용해 한 인덱스를 지우면 for문에서 인덱스가 뒤엉키고 복잡해니 피하자!!!***
-
-
-
-``` c++
 #include <iostream>
 #include <vector>
 using namespace std;
 
 #define MAX 105
-
-
 
 class node{
 public:
@@ -63,15 +13,16 @@ public:
 };
 
 pair<int,int> dir[5]={{0,0},{-1,0},{1,0},{0,-1},{0,1}}; //1 상 2 하 3좌 4우
-int dir2[5]={-987987987,2,1,4,3}; //방향체인지
+int dir2[5]={0,2,1,4,3}; //방향체인지
 vector <node> mynode;
 vector <int> mymap[MAX][MAX];
 int sol=0;
 int n,m,k;
+
 bool range(int x,int y){
     return 0<x && x<n-1 && 0<y && y<n-1;
-    
 }
+
 void simulation(int hour){
     if(hour>=m){
         for(int i=0;i<mynode.size();i++)
@@ -86,11 +37,10 @@ void simulation(int hour){
                   //이 다른 군집들의 위치를 모두 없애주는 오류가 발생한다.
                   //즉 idx=3일 떄 push_back 된게 idx=5일 때 없어질 수 있음
                   //따라서 따로 빼서 이러한 경우를 없애줌
-            mymap[mynode[i].x][mynode[i].y].clear();
+        mymap[mynode[i].x][mynode[i].y].clear();
     }
     /*이동*/
     for(int i=0;i<mynode.size();i++){
-        if(mynode[i].n==0) continue;
         mynode[i].x+=dir[mynode[i].dir].first;
         mynode[i].y+=dir[mynode[i].dir].second;
         mymap[mynode[i].x][mynode[i].y].push_back(i);
@@ -150,7 +100,3 @@ int main(){
         cout<<"#"<<t<<" "<<sol<<"\n";
     }
 }
-
-
-```
-
