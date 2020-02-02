@@ -2,63 +2,81 @@
 #include <vector>
 using namespace std;
 
-#define MAX 4100
+#define MAX 4000
 
 class atom{
 public:
     int x;
     int y;
-    int k;
     int dir;
+    int k;
+
     
-    atom(int x,int y,int k,int dir):x(x),y(y),k(k),dir(dir){};
+    atom(int x,int y,int dir,int k):x(x),y(y),dir(dir),k(k){};
 };
 
 int n;
 int sol=0;
 
-pair<int,int> dir[4]={{1,0},{-1,0},{0,-1},{0,1}};
-vector <int> visited[MAX][MAX];
+int dx[4]={1,-1,0,0};
+int dy[4]={0,0,-1,1};
+vector<int> visited[MAX+50][MAX+50];
 vector <atom> myatom;
 
+bool range(int x,int y){
+    return (0<=x && x<=MAX && 0<=y && y<=MAX);
+}
 void simulation(int sec){
-    if(sec>1000)
+    
+    for(int i=1;i<=n;i++)
+        visited[myatom[i].y][myatom[i].x]=0;
+    
+    if(sec>=2000)
         return;
     
     for(int i=1;i<=n;i++){
-        
-        myatom[i].x+=dir[myatom[i].dir].first;
-        myatom[i].y+=dir[myatom[i].dir].second;
-        visited[myatom[i].x][myatom[i].y].push_back(i);
-    }
-    for(int i=1;i<=n;i++){
-        if(visited[myatom[i].x][myatom[i].y].size()>1){
-            for(int j=0;j<visited[myatom[i].x][myatom[i].y].size();j++){
-                atom& temp=myatom[visited[myatom[i].x][myatom[i].y][j]];
-                sol+=temp.k;
-                temp.k=0;
+        if(myatom[i].k!=0)
+        {
+            //이동
+            myatom[i].x+=dx[myatom[i].dir];
+            myatom[i].y+=dy[myatom[i].dir];
+            //해당노드에 부딪힐게 없으면 노드에 노드인덱스 입력
+            if(!range(myatom[i].x,myatom[i].y)){
+                myatom[i].k=0;
+                continue;
+            }
+            
+            if(visited[myatom[i].y][myatom[i].x]==0)
+                visited[myatom[i].y][myatom[i].x]=i;
+            //부딪힐게 있으면 원래 있던 노드, 현재 노드 k sol에 더해주고 k=0으로 atom 죽이기
+            else{
+                sol+=myatom[i].k;
+                sol+=myatom[visited[myatom[i].y][myatom[i].x]].k;
+                myatom[i].k=0;
+                myatom[visited[myatom[i].y][myatom[i].x]].k=0;
             }
         }
-        visited[myatom[i].x][myatom[i].y].clear();
     }
     simulation(sec+1);
 }
 int main(){
     int tc;
     cin>>tc;
-    {
-        for(int t=1;t<=tc;t++){
-            cin>>n;
-            myatom.push_back(atom(0,0,0,0));
-            for(int i=0;i<n;i++){
-                int x,y,dir,k;
-                cin>>x>>y>>dir>>k;
-                myatom.push_back(atom(y+2002,x+2002,k,dir));
-            }
-            simulation(0);
-            cout<<sol;
+    
+    for(int t=1;t<=tc;t++){
+        sol=0;
+        myatom.clear();
+        cin>>n;
+        myatom.push_back(atom(0,0,0,0));
+        for(int i=0;i<n;i++){
+            int x,y,dir,k;
+            cin>>x>>y>>dir>>k;
+            myatom.push_back(atom((x+1000)*2,(y+1000)*2,dir,k));
         }
+        simulation(0);
+        cout<<"#"<<t<<" "<<sol<<"\n";
     }
+    
 }
 
-//메모리리밋
+//Memory Limit Exceeded
