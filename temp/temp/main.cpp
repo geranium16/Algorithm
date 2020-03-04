@@ -1,90 +1,102 @@
 #include <iostream>
+#include <vector>
 #include <queue>
 using namespace std;
-const int MAX=10;
-const int INF=987987987;
+#define MAX 9
 
-bool mymap[MAX][MAX];
-bool visited[MAX][MAX];
-int paper[5]={0,};
-int ans=INF;
+int n,m;
+int mymap[MAX][MAX];
+int visited[MAX][MAX]={0,};
+int dx[4]={-1,0,1,0}; //상우하좌
+int dy[4]={0,1,0,-1};
+int finishidx=0;
+int ans=987987987;
+
+vector<vector<int>> cctv[6]; // 3차원벡터
+vector <pair<int,int>> nodes;
+
 bool range(int x,int y){
-    return 0<=x && x<MAX  && 0<=y && y<MAX;
+    return 0<= x && x<n && 0<=y && y<m;
 }
-bool confirm(){
-    for(int i=0;i<MAX;i++){
-        for(int j=0;j<MAX;j++){
-            if(mymap[i][j]&&!visited[i][j])
-                return false;
-        }
+
+void makevector(){
+    cctv[1]={vector<int>({0}),
+        vector<int>({1}),
+        vector<int>({2}),
+        vector<int>({3})};
+    cctv[2]={vector<int>({0,2}),
+        vector<int>({1,3})};
+    cctv[3]={vector<int>({0,1}),
+        vector<int>({1,2}),
+        vector<int>({2,3}),
+        vector<int>({3,0})};
+    cctv[4]={vector<int>({0,1,2}),
+        vector<int>({1,2,3}),
+        vector<int>({2,3,0}),
+        vector<int>({3,0,1})};
+    cctv[5]={vector<int>({0,1,2,3})};
+}
+
+class node{
+public:
+    int x;
+    int y;
+    int dir;
+};
+
+void cameraRange(int cameraNum,int cameraDir,int x,int y,int flag){ //BFS
+    queue <node> q;
+    for(int i=0;i<cctv[cameraNum][cameraDir].size();i++){
+        q.push({x,y,cctv[cameraNum][cameraDir][i]});
     }
-    return true;
-}
-int BFS(int x,int y){
+    visited[x][y]+=flag;
     
-    for(int i=1;i<5;i++){
-        for(int j=0;j<i;j++){ //횟수
-            if( !range(x+j,y+i) || visited[x+j][y+i] || !mymap[x+j][y+i] )
-                return i-1;
-            if( !range(x+i,y+j) || visited[x+i][y+j] ||!mymap[x+i][y+j] )
-                return i-1;
-        }
-        if( !range(x+i,y+i) || visited[x+i][y+i] || !mymap[x+i][y+i] )
-            return i-1;
-    }
-    return 4;
-}
-void visitecheck(int x,int y, int maxbulk){
-    for(int i=0;i<=maxbulk;i++){
-        for(int j=0;j<=maxbulk;j++){
-            visited[x+i][y+j]=true;
+    while(!q.empty()){
+        node current=q.front();
+        q.pop();
+        current.x+=dx[current.dir];
+        current.y+=dy[current.dir];
+        if(range(current.x,current.y) && mymap[current.x][current.y]!=6){
+            visited[current.x][current.y]+=flag;
+            q.push(current);
         }
     }
 }
-void visitecheck2(int x,int y,int maxbulk){
-    for(int i=0;i<maxbulk;i++){
-        visited[x+maxbulk][y+i]=false;
-        visited[x+i][y+maxbulk]=false;
-    }
-    visited[x+maxbulk][y+maxbulk]=false;
-}
-void DFS(int x,int y,int sol){
-    if(y>=MAX){
-        x+=1;
-        y=0;
-    }
-    if(x>=MAX){
-        if(confirm())
-            ans=min(ans,sol);
+
+void makeCamera(int idx){ //DFS
+    if(finishidx<=idx){
+        int sol=0;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                if(mymap[i][j]!=6 && visited[i][j]==0)
+                    sol++;
+            }
+        }
+        ans=min(ans,sol);
         return;
     }
     
-    if(mymap[x][y] && !visited[x][y]){
-        int maxbulk=BFS(x,y);
-        visitecheck(x,y,maxbulk);
-        for(int i=maxbulk;i>=0;i--){
-            if(paper[i]<5){
-                paper[i]++;
-                DFS(x,y+i+1,sol+1);
-                paper[i]--;
-            }
-            visitecheck2(x,y,i);
-        }
-        
+    int cameraNum=mymap[nodes[idx].first][nodes[idx].second];
+    for(int i=0;i<cctv[cameraNum].size();i++){
+        cameraRange(cameraNum,i,nodes[idx].first,nodes[idx].second,1);
+        makeCamera(idx+1);
+        cameraRange(cameraNum,i,nodes[idx].first,nodes[idx].second,-1);
     }
-    else
-        DFS(x,y+1,sol);
-    
     
 }
 int main(){
-    for(int i=0;i<MAX;i++){
-        for(int j=0;j<MAX;j++)
+        
+    makevector();
+    cin>>n>>m;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
             cin>>mymap[i][j];
+            if(1<=mymap[i][j] && mymap[i][j]<=5)
+                nodes.push_back({i,j});
+        }
     }
-    DFS(0,0,0);
-    if(ans==INF)
-        cout<<-1;
-    else
-        cout<<ans;
+    finishidx=nodes.size();
+    makeCamera(0);
+    cout<<ans<<"\n";
+    
 }
