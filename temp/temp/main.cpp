@@ -1,136 +1,136 @@
+
+
+
+/*
+ 1. 모든 섬찾기 -> 재귀를 이용한 dfs
+ 다리를 놓을 수 있는 모든 경우를 체크함
+ 섬을 Graph의 Vertex로, 다리를 놓는 경우를 Edge로 모델링함
+ 그래프에 대한 최소 스패닝 트리를 구한다.
+ MST의 길이를 리턴, MST를 구할 수 없는 경우 01를 리턴
+ */
+
+
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <queue>
-#include <cstring>
 using namespace std;
-const int MAX=105;
-const int INF=987987987;
+const int MAX=13;
 
+class Edge{
+public:
+    int node[2];
+    int distance;
+    Edge(int a,int b,int distance){
+        this->node[0]=a;
+        this->node[1]=b;
+        this->distance=distance;
+    }
+    bool operator <(const Edge &edge) const{
+        return this-> distance <edge.distance;
+    }
+};
+
+
+
+int mymap[MAX][MAX];
 int n,m;
-int mymap[MAX][MAX]={0,};
-int mydata[MAX][MAX]={0,};
-
-vector <int> island[7]; //1번부터 시작 아일랜드별 연결된 아일랜드
-vector <pair<int,int>> node[7]; //아일랜드별 노드
-bool flagisland[7]={false,};
-int sol=INF;
+int island_cnt=0;
+vector <Edge> edges;
+vector <pair<int,int>> nodes[7];
 int dx[4]={-1,0,1,0};
 int dy[4]={0,-1,0,1};
-int numofisland=0;
+int dsu[7];
+int sol=0;
 bool range(int x,int y){
     return 0<=x && x<n && 0<=y && y<m;
 }
-
-int BFS2(){
-    queue <int> q;
-    q.push(1);
-    int num=1;
-    flagisland[1]=true;
-    while(!q.empty()){
-        int current=q.front();
-        q.pop();
-        for(int i=0;i<island[current].size();i++){
-            int next=island[current][i];
-            if(!flagisland[next]){
-                flagisland[next]=true;
-                num++;
-                q.push(next);
-            }
-        }
-    }
-    return num;
-}
-int makebridge(int idx,pair<int,int> current,int dir,int num){ //idx=현재섬번호
-
-    pair<int,int> next={current.first+dx[dir],current.second+dy[dir]};
-    if(!range(next.first,next.second)||mydata[next.first][next.second]==idx) //다음 노드가 맵안에 존재하지 않으면 종료 && 다음노드가 현재섬이면 종료
-        return 0;
-    else if(mymap[next.first][next.second]==0){ //다음노드가 바다이면 다음노드로 들어간다.
-        return makebridge(idx,next,dir,num+1);
-    }
-    else{ // 다음 노드가 다른 나라이면
-        
-        for(int i=0;i<island[idx].size();i++){
-            if(island[idx][i]==mydata[next.first][next.second]) //다음 노드가 다른 나라인데 이미 연결된 나라이면 종료
-                return 0;
-        }
-        if(num<=1)
-            return 0;
-        // 다음 노드가 다른 나라인데 연결되지 않은 나라
-        island[idx].push_back(mydata[next.first][next.second]);
-        island[mydata[next.first][next.second]].push_back(idx);
-        return num;
-    }
-}
-
-void solution(int idx,int ans){
-    if(idx>=numofisland){
-        int flag=BFS2();
-        if(flag>=numofisland){
-            if(ans<sol)
-                sol=ans;
-        }
-        memset(flagisland,false,sizeof(flagisland));
-        return;
-    }
-    int plus=0;
-   
-    for(int i=0;i<node[idx].size();i++){
-        pair<int,int> current=node[idx][i]; //현재 섬에 대한 시작점
-
-        for(int j=0;j<4;j++){
-  
-            plus=makebridge(idx,current,j,0);
-            if(plus>0){
-                solution(idx+1,ans+plus);
-                island[island[idx][island[idx].size()-1]].pop_back();
-                island[idx].pop_back();
-            }
-        }
-    }
-}
-
-void BFS(int x,int y){
+void find_island(int x,int y, int island_cnt){
     queue <pair<int,int>> q;
     q.push({x,y});
-    mydata[x][y]=numofisland;
-    node[numofisland].push_back({x,y});
+    mymap[x][y]=island_cnt;
+    
     while(!q.empty()){
         pair<int,int> current=q.front();
         q.pop();
+        bool water=false;
         for(int i=0;i<4;i++){
-            pair<int,int> next ={current.first+dx[i],current.second+dy[i]};
-            if(range(next.first,next.second) && mymap[next.first][next.second]==1 && mydata[next.first][next.second]==0){
-                mydata[next.first][next.second]=numofisland;
+            pair<int,int> next={current.first+dx[i],current.second+dy[i]};
+            if(range(next.first,next.second) && mymap[next.first][next.second]==-1){
                 q.push(next);
-                node[numofisland].push_back(next);
+                mymap[next.first][next.second]=island_cnt;
             }
+            if(mymap[next.first][next.second]==0)
+                water=true;
         }
+        if(water)
+            nodes[mymap[current.first][current.second]].push_back(current);
     }
 }
 
-void nIsiland(){
+void makeEdge(int island_idx,int x,int y,int dir,int cnt){
+    
+    pair<int,int> next= {x+dx[dir],y+dy[dir]};
+    if(range(next.first,next.second)){
+        if(mymap[next.first][next.second]==0)
+            makeEdge(island_idx,next.first,next.second,dir,cnt+1);
+        else if(mymap[next.first][next.second] > island_idx && cnt>1)
+            edges.push_back(Edge(island_idx,mymap[next.first][next.second],cnt));
+    }
+    
+}
+int getParent(int x){
+    if(dsu[x]==x) return x;
+    return getParent(dsu[x]);
+}
+void unionParent(Edge temp){
+    int a=getParent(temp.node[0]);
+    int b=getParent(temp.node[1]);
+    if(a!=b){
+        if(a<b) dsu[b]=a;
+        else dsu[a]=b;
+        sol+=temp.distance;
+    }
+    
+}
+
+int main(){
+    cin>>n>>m;
     for(int i=0;i<n;i++){
         for(int j=0;j<m;j++){
-            if(mymap[i][j]==1 && mydata[i][j]==0){
-                numofisland++;
-                BFS(i,j);
-                
+            cin>>mymap[i][j];
+            if(mymap[i][j]==1) mymap[i][j]=-1;
+        }
+    }
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(mymap[i][j]==-1){
+                find_island(i,j,++island_cnt);
             }
         }
     }
-}
-int main(){
-    
-    cin>>n>>m;
-    for(int i=0;i<n;i++){
-        for(int j=0;j<m;j++)
-            cin>>mymap[i][j];
-        
+    for(int i=1;i<island_cnt;i++){
+        for(int j=0;j<nodes[i].size();j++){
+            for(int k=0;k<4;k++){
+                makeEdge(i,nodes[i][j].first,nodes[i][j].second,k,0);
+            }
+        }
     }
+
+
+    sort(edges.begin(),edges.end());
     
-    nIsiland();
-    solution(1,0);
-    cout<< (sol==INF ? -1:sol);
-    
+    for(int i=1;i<=island_cnt;i++)
+        dsu[i]=i;
+    for(int i=0;i<edges.size();i++)
+        unionParent(edges[i]);
+ 
+    int dsu_first=getParent(1);
+    for(int i=2;i<=island_cnt;i++){
+        if(dsu_first!=getParent(i)){
+            sol=-1;
+            break;
+        }
+    }
+    cout<<sol;
 }

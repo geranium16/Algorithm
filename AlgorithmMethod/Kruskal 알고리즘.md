@@ -56,6 +56,97 @@ Prim의 알고리즘의 시간 복잡도는 O(n^2) 이므로
 - 그래프 내에 적은 숫자의 간선만을 가지는 ‘희소 그래프(Sparse Graph)’의 경우 Kruskal 알고리즘이 적합하고
 - 그래프에 간선이 많이 존재하는 ‘밀집 그래프(Dense Graph)’ 의 경우는 Prim 알고리즘이 적합하다.
 
+
+
+### 코드
+
+``` c++
+
+
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+using namespace std;
+
+//부모 노드를 가져옴
+int getParent(int set[], int x){
+    if(set[x]==x) return x;
+    return getParent(set,set[x]);
+}
+
+//부모 노드를 병합
+void unionParent(int set[],int a,int b){
+  a=getParent(set, a);
+  b=getParent(set, b);
+  if(a<b) set[b] = a;
+  else set[a] = b;
+}
+//같은 부모를 가지는지 확인
+int find(int set[],int a,int b){
+  a = getParent(set,a);
+  b = getParent(set,b);
+  if(a==b) return 1;
+  else return 0;
+}
+
+class Edge{
+public:
+  int node[2];
+  int distance;
+  Edge(int a, int b, int distance){
+    this->node[0]=a;
+    this->node[1]=b;
+    this->distance=distance;
+  }
+    bool operator <(const Edge &edge) const { // const를 모두 붙여줘야 된다. why?
+    return this->distance < edge.distance;
+  }
+};
+
+
+int main(void){
+    int n = 7;
+    int m = 11;
+    
+    vector<Edge> v;
+    v.push_back(Edge(1,7,12));
+    v.push_back(Edge(1,4,28));
+    v.push_back(Edge(1,2,67));
+    v.push_back(Edge(1,5,17));
+    v.push_back(Edge(2,4,24));
+    v.push_back(Edge(2,5,62));
+    v.push_back(Edge(3,5,20));
+    v.push_back(Edge(3,6,37));
+    v.push_back(Edge(4,7,13));
+    v.push_back(Edge(5,6,45));
+    v.push_back(Edge(5,7,73));
+    
+    //간선의 비용으로 오름차순 정렬
+    sort(v.begin(),v.end());
+  
+    //각 정점이 포함된 그래프가 어디인지 저장
+    int set[n];
+    for(int i=0;i<n;i++){
+        set[i]=i;
+    }
+    
+    //거리의 합을 0으로 초기화
+    int sum=0;
+    for(int i=0;i<v.size();i++){
+        //동일한 부모를 가르키지 않는 경우, 즉 사이클이 발생하지 않을 때만 선택
+        if(!find(set,v[i].node[0]-1,v[i].node[1]-1)){ //실제 node는 1부터, 저장노드는 0부터 시작
+                    sum+=v[i].distance;
+          unionParent(set,v[i].node[0]-1,v[i].node[1]-1);
+        }
+    }
+  cout<<sum;
+}
+
+```
+
+
+
 ### 참고 자료
 
 - https://gmlwjd9405.github.io/2018/08/29/algorithm-kruskal-mst.html
