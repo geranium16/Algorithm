@@ -1,87 +1,75 @@
 #include <iostream>
-#include <vector>
+#include <cstring>
 using namespace std;
+const int MAX=22;
 
-int main(){
-    const int MAX = 100010;
-    const int MAX2 = 5005;
-    
-    int tc;
-    cin>>tc;
-    for(int t=0;t<tc;t++){
-        int arr_size=0, code_size=0, input_size=0;
-        int arr_idx=0, code_idx=0, input_idx=0;
-        
-        cin>>arr_size>>code_size>>input_size;
-        
-        int arr[MAX]={0,};
-        char code[MAX2];
-        char input[MAX2];
-        int loop[MAX2];
-        int looptemp[MAX2];
-        bool flag=false;
-        cin>>code;
-        cin>>input;
-        
-        //[][]의 짝을 지어줄 것이다.
-        //]이 나오면 최신 [과 함께 제거해주고 [idx에 ]idx를 ]idx에 [idx를 넣어줄 것이다.
-        int j=-1;
-        int max_code_idx=0;
-        for(int i=0;i<code_size;i++){
-            if(code[i]=='[')
-                looptemp[++j]=i;
-            else if(code[i]==']'){
-                looptemp[++j]=i;
-                loop[looptemp[j]]=looptemp[j-1];
-                loop[looptemp[j-1]]=looptemp[j];
-                j-=2; //최신 [] 제거
+int n; //1<=n<=20
+int mymap[MAX][MAX]={0,};
+bool summary[MAX][MAX]={0,};
+int solution=0;
+
+void rotation(){
+    int temp[MAX][MAX];
+    memcpy(temp,mymap,sizeof(temp));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++)
+            mymap[j][n-1-i]=temp[i][j];
+    }
+}
+
+void move(){
+    for(int j=0;j<n;j++){
+        for(int i=0;i<n;i++){
+            if(mymap[i][j]!=0){
+                for(int k=i-1;k>=0;k--){
+                    if(mymap[k][j]!=0){
+                        if(mymap[k][j]==mymap[i][j] &&!summary[k][j]){
+                            mymap[k][j]*=2;
+                            mymap[i][j]=0;
+                            summary[k][j]=true;
+                            if(solution<mymap[k][j])
+                                solution=mymap[k][j];
+                        }
+                        else if(k+1!=i){
+                            mymap[k+1][j]=mymap[i][j];
+                            mymap[i][j]=0;
+                        }
+                        break;
+                    }
+                    else if(k==0){
+                        mymap[k][j]=mymap[i][j];
+                        mymap[i][j]=0;
+                    }
+                }
             }
-        }
-        
-        for(int i=0;i<50000000;i++){
-            if (code_idx >= code_size) {
-                flag = true;
-                break;
-            }
-            if(code[code_idx]=='-')
-                arr[arr_idx] = (arr[arr_idx]-1) < 0 ? 255 : arr[arr_idx]-1;
-            
-            else if(code[code_idx]=='+')
-                arr[arr_idx] = (arr[arr_idx]+1) % 256;
-            
-            else if(code[code_idx]=='<')
-                arr_idx = (arr_idx-1) < 0 ? arr_size-1 : arr_idx-1;
-            
-            else if(code[code_idx]=='>')
-                arr_idx = (arr_idx+1) % arr_size;
-            
-            
-            else if(code[code_idx]=='['){
-                if(arr[arr_idx]==0)
-                    code_idx=loop[code_idx];
-            }
-            
-            else if(code[code_idx]==']'){
-                if(arr[arr_idx]!=0)
-                    code_idx=loop[code_idx];
-            }
-            
-            else if(code[code_idx]==','){
-                if(input_idx<input_size)
-                    arr[arr_idx]=(int)input[input_idx++];
-                else
-                    arr[arr_idx]=255;
-            }
-            
-            
-            code_idx+=1;
-            max_code_idx = code_idx > max_code_idx ? code_idx : max_code_idx;
-        }
-        if(flag)
-            cout<<"Terminates\n";
-        else{
-            cout<<"Loops "<<loop[max_code_idx]<<" "<<max_code_idx<<"\n";
         }
     }
+}
+void DFS(int cnt){
+    
+    if(cnt>=5)
+        return;
+    
+    int copy_map[MAX][MAX];
+    for(int dir=0;dir<4;dir++){
+        memcpy(copy_map,mymap,sizeof(copy_map));
+        memset(summary,0,sizeof(summary));
+        move();
+        DFS(cnt+1);
+        memcpy(mymap,copy_map,sizeof(mymap));
+        rotation();
+    }
+}
 
+int main(){
+    cin>>n;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>mymap[i][j];
+            if(solution<mymap[i][j])
+                solution=mymap[i][j];
+        }
+    }
+    DFS(0);
+    cout<<solution;
 }
