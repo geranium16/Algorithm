@@ -2,18 +2,11 @@
 using namespace std;
 const int MAX=10;
 
-/*
- 말 4개
- */
-
 int root[4][40]={{0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,0,0,0,0,0},
     {10,13,16,19,25,30,35,40,0,0,0,0,0},
     {20,22,24,25,30,35,40,0,0,0,0,0},
     {30,28,27,26,25,30,35,40,0,0,0,0,0}
 };
-
-
-
 int mydata[MAX];
 pair<int,int> horse[4]={{0,0},{0,0},{0,0},{0,0}};
 bool horseflag[4]={false,};
@@ -37,11 +30,11 @@ void simulation(int cnt,int value){
         solution = solution > value ? solution : value;
         return;
     }
+    
     bool flag=false;
     for(int i=0;i<4;i++){
         if(horseflag[i])
             continue;
-        
         flag=true;
         pair<int,int> temp=horse[i];
         horse[i].second=horse[i].second+mydata[cnt];
@@ -55,44 +48,37 @@ void simulation(int cnt,int value){
                 if(j==i||horseflag[j])
                     continue;
                 
-                if(horse[i].first==horse[j].first && horse[i].second==horse[j].second){
+                else if(horse[i].first==horse[j].first && horse[i].second==horse[j].second){
                     flag2=true;
                     break;
                 }
                 
                 else if(root[horse[i].first][horse[i].second]==root[horse[j].first][horse[j].second]){
                     int what=root[horse[i].first][horse[i].second];
-                    
-                    if(what==25 || what==30 || what==35){
-                        if(what==30 && horse[i].second!=horse[j].second)
-                            continue;
-                        if(horse[i].first!=0 && horse[j].first!=0){
-                            flag2=true;
-                            break;
-                        }
+                    if(what==25||what==35||what==40){
+                        flag2=true;
+                        break;
                     }
-                    if(what==40){
+                    else if(what==30 && horse[j].second!=0 && horse[i].second!=0){
                         flag2=true;
                         break;
                     }
                 }
-                
-                
-                
             }
             if(flag2){
                 horse[i]=temp;
                 continue;
             }
         }
-        //////////////////////////////////////////////
         simulation(cnt+1,value+root[horse[i].first][horse[i].second]);
         horseflag[i]=false;
         horse[i]=temp;
     }
+    
     if(!flag)
         simulation(cnt+1,value);
 }
+
 int main(){
     for(int i=0;i<MAX;i++)
         cin>>mydata[i];
