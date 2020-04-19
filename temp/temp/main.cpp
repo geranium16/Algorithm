@@ -1,81 +1,62 @@
+/*
+ 
+ 문제
+ 크기가 3×3인 배열 A가 있다. 1초가 지날때마다 배열에 연산이 적용된다.
+
+ R 연산: 배열 A의 모든 행에 대해서 정렬을 수행한다. 행의 개수 ≥ 열의 개수인 경우에 적용된다.
+ C 연산: 배열 A의 모든 열에 대해서 정렬을 수행한다. 행의 개수 < 열의 개수인 경우에 적용된다.
+ 수의 등장 횟수가 커지는 순으로, 그러한 것이 여러가지면 수가 커지는 순으로 정렬한다. 수와 등장 횟수를 모두 넣으며, 순서는 수가 먼저이다.
+
+ 
+ 행 또는 열의 크기가 커진 곳에는 0이 채워진다. 수를 정렬할 때 0은 무시해야 한다. 예를 들어, [3, 2, 0, 0]을 정렬한 결과는 [3, 2]를 정렬한 결과와 같다.
+
+ 행 또는 열의 크기가 100을 넘어가는 경우에는 처음 100개를 제외한 나머지는 버린다.
+
+ 배열 A에 들어있는 수와 r, c, k가 주어졌을 때, A[r][c]에 들어있는 값이 k가 되기 위한 최소 시간을 구해보자.
+
+ 입력
+ 첫째 줄에 r, c, k가 주어진다. (1 ≤ r, c, k ≤ 100)
+
+ 둘째 줄부터 3개의 줄에 배열 A에 들어있는 수가 주어진다. 배열 A에 들어있는 수는 100보다 작거나 같은 자연수이다.
+
+ 출력
+ A[r][c]에 들어있는 값이 k가 되기 위한 연산의 최소 시간을 출력한다. 이 값이 100을 넘어가는 경우에는 -1을 출력한다.
+
+
+ <row기준>
+ - col 탐색하며 0이면 무시 / 없는 숫자이면 벡터에 추가 / 있는 숫자이면 숫자 증가
+ ( vector <int,int> mydata; 숫자, 횟수 )
+ - 횟수로 정렬 , 숫자로 정렬
+ - row에 업데이트 (100넘어가면 스탑)
+이 때, 전 컬럼수보다 적어질 수 있다. 이를 0으로 만들어야한다.
+이를 위해 max_col을 잡아서 이 후값을 0으로 복구
+ 
+ 
+ */
+
 #include <iostream>
-#include <vector>
-#include <queue>
 using namespace std;
-const int MAX=22;
-const int INF=987987;
-
-int n;
+const int MAX=102;
+int r,c,k;
 int mymap[MAX][MAX];
-int dx[4]={-1,0,0,1};
-int dy[4]={0,-1,1,0};
-pair<int,int> shark;
-
-bool range(int x,int y){
-    return 0<=x && x<n && 0<=y && y<n;
-}
-int BFS(int bulk,int bulk2,int time){
-    queue <pair<int,int>> q;
-    queue <int> t;
-    q.push(shark);
-    t.push(0);
-    bool visited[MAX][MAX]={false,};
-    visited[shark.first][shark.second]=true;
+int simulation(int cnt){
+    if(cnt>=100)
+        return -1;
+    else if(mymap[r-1][c-1]==k)
+        return cnt;
     
-    bool flag=false;
-    pair<int,int> sol={INF,INF};
-    int dis=INF;
-    while(!q.empty()){
-        pair<int,int> current = q.front();
-        int current_t=t.front();
-        q.pop();
-        t.pop();
-        if(current_t>=dis)
-            continue;
-        for(int i=0;i<4;i++){
-            pair<int,int>next={current.first+dx[i],current.second+dy[i]};
-            if(range(next.first,next.second)){
-                if((mymap[next.first][next.second]==0|| mymap[next.first][next.second]==bulk) && !visited[next.first][next.second]){
-                    visited[next.first][next.second]=true;
-                    q.push(next);
-                    t.push(current_t+1);
-                }
-                else if(0<mymap[next.first][next.second] && mymap[next.first][next.second]<bulk){
-                    dis=current_t+1;
-                    flag=true;
-                    if(sol.first==INF)
-                        sol=next;
-                    else if(sol.first>next.first)
-                        sol=next;
-                    else if(sol.first==next.first && sol.second>next.second)
-                        sol=next;
-                }
-            }
-        }
-    }
-    if(flag){
-        shark=sol;
-        mymap[shark.first][shark.second]=0;
-        bulk2++;
-        if(bulk==bulk2){
-            bulk++;
-            bulk2=0;
-        }
-        return BFS(bulk,bulk2,time+dis);
-    }
-    return time;
+    
+    return simulation(cnt+1);
+    
+    
 }
-
 int main(){
-    cin>>n;
-    for(int i=0;i<n;i++){
-        for(int j=0;j<n;j++){
+    cin>>r>>c>>k;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++)
             cin>>mymap[i][j];
-            if(mymap[i][j]==9){
-                shark={i,j};
-                mymap[i][j]=0;
-            }
-        }
     }
-    cout<< BFS(2,0,0);
+    simulation(0);
+    
+    
 }
