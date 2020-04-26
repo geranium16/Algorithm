@@ -1,117 +1,76 @@
-#include <iostream>
-#include <queue>
+#include  <iostream>
 using namespace std;
-const int MAX = 52;
-int n,m,t;
-int mymap[MAX][MAX];
-int x[MAX],d[MAX],k[MAX];
-int dx[4]={-1,0,1,0};
-int dy[4]={0,-1,0,1};
-int sum=0,num=0;
+const int MAX= 12;
+const int MAX2 = 304;
+// i번 세로선의 결과가 i번이 나오도록 사다리 게임을 조작하려면, 추가해야하는 가로선 개수의 최소값
+// 정답이 3보다 크면 -1출력
 
-void BFS(){
-    //인접
-    bool visited[MAX][MAX]={false,};
-    bool flag=false;
+int m,n,h;
+bool mymap[MAX2][MAX];
+int y_init;
+bool flag=false;
+int solution=-1;
+
+bool DFS(int x,int y,int x_temp,int y_temp){
+    if(x>h){
+        return y==y_init ? true : false;
+    }
+    if(mymap[x][y] && y_temp!=y+1)
+        return DFS(x,y+1,x,y);
+    else if(y>1 && mymap[x][y-1] && y_temp!=y-1)
+        return DFS(x,y-1,x,y);
+    else
+        return DFS(x+1,y,x,y);
+}
+
+bool situation(){
     for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(mymap[i][j]==0)
-                continue;
-            bool flag2=false;
-            queue <pair<int,int>> q;
-            q.push({i,j});
-            int val=mymap[i][j];
-            visited[i][j]=true;
-            while(!q.empty()){
-                pair<int,int> current = q.front();
-                q.pop();
-                for(int k=0;k<4;k++){
-                    pair<int,int> next= {current.first+dx[k],current.second+dy[k]};
-                    if(next.first<1 || next.first>n)
-                        continue;
-                    else if(next.second<1)
-                        next.second=m;
-                    else if(next.second>m)
-                        next.second=1;
-                    if(!visited[next.first][next.second] && mymap[next.first][next.second]==val){
-                        if(!flag2){
-                            sum-=mymap[current.first][current.second];
-                            num--;
-                            mymap[current.first][current.second]=0;
-                            flag2=true;
-                        }
-                        flag=true;
-                        sum-=mymap[next.first][next.second];
-                        num--;
-                        mymap[next.first][next.second]=0;
-                        visited[next.first][next.second]=true;
-                        q.push(next);
-                        
-                    }
-                }
-            }
-        }
+        y_init=i;
+        if(!DFS(1,i,0,0))
+            return false;
     }
-    
-    if(!flag){
-        double avg=double(sum)/num;
-        for(int i=1;i<=n;i++){
-            for(int j=1;j<=m;j++){
-                if(mymap[i][j]==0)
-                    continue;
-                if(mymap[i][j]>avg){
-                    sum--;
-                    mymap[i][j]--;
-                    
-                }
-                else if(mymap[i][j]<avg){
-                    sum++;
-                    mymap[i][j]++;
-                }
-            }
-        }
-    }
-    
+    return true;
 }
 
-void rotation(int cnt){
-    for(int i=x[cnt];i<=n;i+=x[cnt]){
-        int temp[MAX];
-        for(int j=1;j<=m;j++)
-            temp[j]=mymap[i][j];
-        for(int j=1;j<=m;j++){
-            int col=(j+k[cnt])%(m+1);
-            if(col<j)
-                col++;
-            if(d[cnt]==0)
-                mymap[i][col]=temp[j]; //시계 회전
-            else
-                mymap[i][j]=temp[col];
+void combination(int idx,int cnt,int x,int y){
+    if(idx<=cnt){
+        if(situation()){
+            flag=true;
         }
-    }
-}
-
-void simulation(int cnt){
-    
-    if(cnt>=t||sum==0)
         return;
-    rotation(cnt);
-    BFS();
-    simulation(cnt+1);
-}
-
-int main(){
-    cin>>n>>m>>t;
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            cin>>mymap[i][j];
-            sum+=mymap[i][j];
-            num++;
+    }
+    if(y>=n){
+        x++;
+        y=1;
+    }
+    if(x>h)
+        return;
+    
+    for(int i=x;i<=h;i++){
+        for(int j=y;j<n;j++){
+            if(mymap[i][j])
+                continue;
+            mymap[i][j]=true;
+            combination(idx,cnt+1,x,y+1);
+            mymap[i][j]=false;
+            if(flag)
+                return;
         }
     }
-    for(int i=0;i<t;i++)
-        cin>>x[i]>>d[i]>>k[i];
-    simulation(0);
-    cout<<sum;
 }
-
+int main(){
+    cin>>n>>m>>h;
+    for(int i=0;i<m;i++){
+        int a,b;
+        cin>>a>>b;
+        mymap[a][b]=true;
+    }
+    for(int i=0;i<=3;i++){
+        combination(i,0,1,1);
+        if(flag){
+            solution=i;
+            break;
+        }
+    }
+    cout<<solution;
+}
