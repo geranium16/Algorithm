@@ -1,101 +1,69 @@
-
-/*
- 14:10 03:06
- n*m
- 세울 수 있는 벽: 3개, 꼭 세워야한다.
- 0 빈칸, 1 벽, 2바이러스
- 얻을 수 있는 안전 지역 크기의 최대값
- 
- 브루트 포스
- 1. 바이러스 3개 위치 선택 60C3
- -> 콤비네이션
- 
- 2. 선택을 토대로 바이러스 확산 DFS
- */
-
 #include <iostream>
-#include <queue>
-#include <cstring>
 #include <vector>
 using namespace std;
-const int MAX=10;
+const int MAX= 102;
 
+class curve{
+public:
+    int x; //세로
+    int y; //가로
+    int d; // 방향
+    int g; //세대
+};
 
-int mymap[MAX][MAX];
-int n,m;
-int safetyArea=-3;
-int sol=0;
-vector <pair<int,int>> birus;
-bool visited[MAX][MAX];
-int dx[4]={-1,0,1,0};
-int dy[4]={0,-1,0,1};
+int n; //드래곤 커브의 개수
+int dx[4] = {0,-1,0,1};
+int dy[4] = {1,0,-1,0};
+
+bool mymap[MAX][MAX];
+vector <vector<curve>> mydata;
 
 bool range(int x,int y){
-    return 0<= x && x<n && 0<=y && y<m;
+    return 0<=x && x<=100 && 0<=y && y<=100;
 }
-int BFS(int x,int y){
-    visited[x][y]=true;
-    queue <pair<int,int>> q;
-    q.push({x,y});
-    int num=0;
-    while(!q.empty()){
-        pair<int,int> current=q.front();
-        q.pop();
-        for(int i=0;i<4;i++){
-            pair<int,int> next = {current.first+dx[i],current.second+dy[i]};
-            if(range(next.first,next.second) && mymap[next.first][next.second]==0 && !visited[next.first][next.second]){
-                visited[next.first][next.second]=true;
-                num++;
-                q.push(next);
+
+void simulation(){
+    
+    for(int i=0;i<n;i++){
+        for(int k=0;k<mydata[i][0].g;k++){
+            int last_idx=int(mydata[i].size())-1;
+            curve last=mydata[i][last_idx];
+            vector <curve> temp;
+            for(int j=last_idx;j>0;j--){
+                int new_dir = (mydata[i][j].d+1)%4;
+                last.x+=dx[new_dir];
+                last.y+=dy[new_dir];
+                last.d=new_dir;
+                mydata[i].push_back(last);
+                mymap[last.x][last.y]=true;
             }
         }
     }
-    return num;
 }
-void selection(int cnt,int x,int y){
-    if(cnt>=3){
-        int ans=safetyArea;
-        memset(visited,false,sizeof(visited));
-        for(int i=0;i<birus.size();i++)
-            ans-=BFS(birus[i].first,birus[i].second);
-        sol = ans> sol ? ans : sol;
-        return;
-    }
-    if(y>=m){
-        if(x>=n)
-            return;
-        y=0; x++;
-    }
-    for(int j=y;j<m;j++){
-        if(mymap[x][j]==0){
-            mymap[x][j]=1;
-            selection(cnt+1,x,j+1);
-            mymap[x][j]=0;
-        }
-    }
-    for(int i=x+1;i<n;i++){
-        for(int j=0;j<m;j++){
-            if(mymap[i][j]==0){
-                mymap[i][j]=1;
-                selection(cnt+1,i,j+1);
-                mymap[i][j]=0;
-            }
+
+int main(){
+    cin>>n;
+    int x,y,d,g;
+    for(int i=0;i<n;i++){
+        cin>>x>>y>>d>>g; //시작점
+        vector <curve> temp;
+        mydata.push_back(temp);
+        mydata[i].push_back({y,x,d,g});
+        if(range(y+dy[d],x+dx[d])){
+            mydata[i].push_back({y+dx[d],x+dy[d],d,g});
+            mymap[y][x]=true;
+            mymap[y+dx[d]][x+dy[d]]=true;
         }
     }
     
-}
-int main(){
-    cin>>n>>m;
-    for(int i=0;i<n;i++){
-        for(int j=0;j<m;j++){
-            cin>>mymap[i][j];
-            if(mymap[i][j]==0)
-                safetyArea++;
-            else if(mymap[i][j]==2)
-                birus.push_back({i,j});
+    simulation();
+    
+    int sol=0;
+    for(int i=0;i<100;i++){
+        for(int j=0;j<100;j++){
+            if(mymap[i][j] && mymap[i][j+1] && mymap[i+1][j] && mymap[i+1][j+1])
+                sol++;
         }
     }
-    //cout<<safetyArea;
-    selection(0,0,0);
     cout<<sol;
 }
