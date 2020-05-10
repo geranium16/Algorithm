@@ -23,18 +23,15 @@ void diffusion(){
     for(int i=0;i<r;i++){
         for(int j=0;j<c;j++){
             if(mymap[i][j]>0){
-                vector <pair<int,int>> new_xy;
+                int numofdiff=0;
                 for(int k=0;k<4;k++){
                     pair <int,int> next={i+dx[k],j+dy[k]};
-                    if(range(next.first,next.second) && mymap[next.first][next.second]>=0)
-                        new_xy.push_back(next);
+                    if(range(next.first,next.second) && mymap[next.first][next.second]>=0){
+                        temp[next.first][next.second]+=mymap[i][j]/5;
+                        numofdiff++;
+                    }
                 }
-                int var=0;
-                for(int k=0;k<new_xy.size();k++){
-                    temp[new_xy[k].first][new_xy[k].second]+=mymap[i][j]/5;
-                    var+=mymap[i][j]/5;
-                }
-                temp[i][j] += mymap[i][j]-var; //A-(A/5)*확산 수
+                temp[i][j] += mymap[i][j]-mymap[i][j]/5*numofdiff; //A-(A/5)*확산 수
             }
         }
     }
