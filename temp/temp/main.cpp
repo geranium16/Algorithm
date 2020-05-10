@@ -1,69 +1,90 @@
+
 #include <iostream>
 #include <vector>
+#include <cstring>
 using namespace std;
-const int MAX= 102;
+const int MAX = 52;
 
-class curve{
-public:
-    int x; //세로
-    int y; //가로
-    int d; // 방향
-    int g; //세대
-};
-
-int n; //드래곤 커브의 개수
-int dx[4] = {0,-1,0,1};
-int dy[4] = {1,0,-1,0};
-
-bool mymap[MAX][MAX];
-vector <vector<curve>> mydata;
+int r,c,t;
+int mymap[MAX][MAX];
+int solution=0;
+int dx[4]={-1,0,1,0};
+int dy[4]={0,-1,0,1};
+pair<int,int> merchine[2];
 
 bool range(int x,int y){
-    return 0<=x && x<=100 && 0<=y && y<=100;
+    return 0<=x && x<r && 0<=y && y<c;
 }
 
-void simulation(){
-    
-    for(int i=0;i<n;i++){
-        for(int k=0;k<mydata[i][0].g;k++){
-            int last_idx=int(mydata[i].size())-1;
-            curve last=mydata[i][last_idx];
-            vector <curve> temp;
-            for(int j=last_idx;j>0;j--){
-                int new_dir = (mydata[i][j].d+1)%4;
-                last.x+=dx[new_dir];
-                last.y+=dy[new_dir];
-                last.d=new_dir;
-                mydata[i].push_back(last);
-                mymap[last.x][last.y]=true;
+void diffusion(){
+    int temp[MAX][MAX]={0,};
+    temp[merchine[0].first][merchine[0].second]=-1;
+    temp[merchine[1].first][merchine[1].second]=-1;
+    for(int i=0;i<r;i++){
+        for(int j=0;j<c;j++){
+            if(mymap[i][j]>0){
+                vector <pair<int,int>> new_xy;
+                for(int k=0;k<4;k++){
+                    pair <int,int> next={i+dx[k],j+dy[k]};
+                    if(range(next.first,next.second) && mymap[next.first][next.second]>=0)
+                        new_xy.push_back(next);
+                }
+                int var=0;
+                for(int k=0;k<new_xy.size();k++){
+                    temp[new_xy[k].first][new_xy[k].second]+=mymap[i][j]/5;
+                    var+=mymap[i][j]/5;
+                }
+                temp[i][j] += mymap[i][j]-var; //A-(A/5)*확산 수
             }
         }
     }
+    memcpy(mymap,temp,sizeof(mymap));
+}
+void cleaning(){
+    solution-=mymap[merchine[0].first-1][0];
+    for(int i=merchine[0].first-1;i>0;i--)
+        mymap[i][0]=mymap[i-1][0];
+    for(int i=0;i<c-1;i++)
+        mymap[0][i]=mymap[0][i+1];
+    for(int i=0;i<merchine[0].first;i++)
+        mymap[i][c-1]=mymap[i+1][c-1];
+    for(int i=c-1;i>1;i--)
+        mymap[merchine[0].first][i]=mymap[merchine[0].first][i-1];
+    mymap[merchine[0].first][merchine[0].second+1]=0;
+
+    solution-=mymap[merchine[1].first+1][0];
+    for(int i=merchine[1].first+1;i<r-1;i++)
+        mymap[i][0]=mymap[i+1][0];
+    for(int i=0;i<c-1;i++)
+        mymap[r-1][i]=mymap[r-1][i+1];
+    for(int i=r-1;i>merchine[1].first;i--)
+        mymap[i][c-1]=mymap[i-1][c-1];
+    for(int i=c-1;i>1;i--)
+        mymap[merchine[1].first][i]=mymap[merchine[1].first][i-1];
+    mymap[merchine[1].first][merchine[1].second+1]=0;
+}
+
+void simulation(int cnt){
+    if(cnt>=t)
+        return;
+    diffusion();
+    cleaning();
+    simulation(cnt+1);
 }
 
 int main(){
-    cin>>n;
-    int x,y,d,g;
-    for(int i=0;i<n;i++){
-        cin>>x>>y>>d>>g; //시작점
-        vector <curve> temp;
-        mydata.push_back(temp);
-        mydata[i].push_back({y,x,d,g});
-        if(range(y+dy[d],x+dx[d])){
-            mydata[i].push_back({y+dx[d],x+dy[d],d,g});
-            mymap[y][x]=true;
-            mymap[y+dx[d]][x+dy[d]]=true;
+    cin>>r>>c>>t;
+    for(int i=0;i<r;i++){
+        for(int j=0;j<c;j++){
+            cin>>mymap[i][j];
+            if(mymap[i][j]>0)
+                solution+=mymap[i][j];
+            else if(mymap[i][j]==-1 && mymap[i-1][j]==-1){
+                merchine[0]={i-1,j};
+                merchine[1]={i,j};
+            }
         }
     }
-    
-    simulation();
-    
-    int sol=0;
-    for(int i=0;i<100;i++){
-        for(int j=0;j<100;j++){
-            if(mymap[i][j] && mymap[i][j+1] && mymap[i+1][j] && mymap[i+1][j+1])
-                sol++;
-        }
-    }
-    cout<<sol;
+    simulation(0);
+    cout<<solution;
 }
