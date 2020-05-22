@@ -1,137 +1,75 @@
-/* 문제
- 
-이동 완료 시간 = 모든 사람들이 계단을 내려가 아래층으로 이동을 완료한 시간 (최소값 구하라!!!)
- 
-한동 이동 완료 시간 = 계단 입구까지 이동 시간 + 계단을 내려 가는 시간
-
-- 계단 입구 이동시간
- abs(x1-x2) + abs(y1-y2)
- 
-- 계단을 내려가는 시간
-1. 계단 입구 도착시, 1분 후 아래칸 이동
-2. 계단은 최대 3명 이용 가능 (풀방일시 대기)
-3. 내려가는데 K분걸린다.
- 
- 방길이 N ( 4<= N <=10 ) 100
- 사람수 1( 1<=사람수<=10)
- 계답입구 2개 입력>=2 (겹치지 않는다.), (2<= 길이 <=10)
- 
- <풀이>
- 1. 계단 배분하기 (조합)
- for(i=0;i<2;i++) 재귀함수
- 
- 2. simulation
- - 계단입구까지 이동 따로 체크X ,  abs(x1-x2) + abs(y1-y2) 도착만 확인
- - 도착시간+1부터 계단이용가능 여부 확인 및 계단 이용
- - 계단 이용중일시 l만큼 시간 확인
- 
- 상태가 필요
- person status: 0(이동) 1(계단입구도착) 2(계단이용) 3(도착)
- stair status: 이용자수
- 
- for(){
-    1. status==0일시 거리<t: 아무것도X, 거리>=t status=1 -> 다른거 확인X 다음턴  ( 맨 밑 )
-    2. status==1일시 계단이용여부확인, status=2 / stair status++
-    3. status==2일시 l-- / l--할시 바로 도착했는지 체크 도착했으면 빼주기 status=3, stair status--
- #2,3번 분리해야한다. vector 앞 뒤 다르다. 도착 빼주는 것을 먼저해야한다.
- #2,1번은 한번에 해야도된다.
- 3번 : 계단 하강여부 확인
- 2번 : 계단 이용 여부
- 1번 : 도착확인
- # 누가 이용하나? 상관없다. 어차피 도착거리는 시간은 같고 다 도착해야한다.
- }
- 모두 도착 확인? 도착인원수확인
- 
- */
-
 #include <iostream>
 #include <vector>
 using namespace std;
-const int  MAX=12;
-
-class person{
-public:
-    int x;
-    int y;
-    int status;
-    int stair;
-    int dis;
-    int time;
-};
-class stair{
-public:
-    int x;
-    int y;
-    int l;
-    int num;
-};
-
-int n; //4<= n <=10
+const int MAX=12;
+int n; //3<=n<=10
+int m; //1<=m<=5; // 벌통의 개수 M
+int c; //10<=c<=30; 한 사람이 꿀을 채취할 수 있는 최대 양
 int mymap[MAX][MAX];
-int solution=987987987;
-vector <stair> mystair;
-vector <person> myperson;
-void simulation(int t,int arriveNum){
-    for(int i=0;i<myperson.size();i++){ //도착
-        if(myperson[i].status==2){
-            myperson[i].time--;
-            if(myperson[i].time==0){
-                myperson[i].status=3;
-                mystair[myperson[i].stair].num--;
-                arriveNum++;
+int solution=0;
+int val2=0;
+vector <int> comb;
+
+void combination(int x,int y,int end,int cnt,int idx){
+    if(end<=cnt){
+        int sum1=0;
+        int sum2=0;
+        for(int i=0;i<comb.size();i++){
+            sum1+=mymap[x][y+comb[i]];
+            sum2+=mymap[x][y+comb[i]]*mymap[x][y+comb[i]];
+        }
+        if(sum1<=c) val2 = val2 > sum2 ? val2 : sum2;
+        
+        return ;
+    }
+    for(int i=idx;i<m;i++){
+        comb.push_back(i);
+        combination(x,y,end,cnt+1,i+1);
+        comb.pop_back();
+    }
+}
+
+void simulation(int sum,int cnt,int x,int y){
+    
+    if(cnt>=2){ //OK
+        solution= solution > sum ? solution : sum;
+        return;
+    }
+    
+    for(int j=y;j<=n-m;j++){ //첫행
+        int add=0;
+        for(int k=1;k<=m;k++){
+            val2=0;
+            combination(x,j,k,0,0);
+            add = add > val2 ? add : val2;
+        }
+        simulation(sum+add,cnt+1,x,j+m);
+    }
+    
+    for(int i=x+1;i<n;i++){
+        for(int j=0;j<=n-m;j++){
+            int add=0;
+            for(int k=1;k<=m;k++){
+                val2=0;
+                combination(i,j,k,0,0);
+                add = add > val2 ? add : val2;
             }
+            simulation(sum+add,cnt+1,i,j+m);
         }
     }
-    
-    if(arriveNum>=myperson.size()){
-        solution = solution < t ? solution : t;
-        return;
-    }
-    
-    for(int i=0;i<myperson.size();i++){
-        if(myperson[i].status==1 && mystair[myperson[i].stair].num<3){
-            myperson[i].status=2;
-            mystair[myperson[i].stair].num++; // 계단이용자수 증가
-        }
-        else if(myperson[i].status==0 && myperson[i].dis<=t)
-            myperson[i].status=1;
-    }
-    simulation(t+1,arriveNum);
 }
-void makecase(int cnt){
-    if(cnt>=myperson.size()){
-        for(int i=0;i<myperson.size();i++){
-            myperson[i].status=0;
-            myperson[i].time=mystair[myperson[i].stair].l;
-        }
-        simulation(0,0);
-        return;
-    }
-    for(int i=0;i<2;i++){
-        myperson[cnt].stair = i;
-        myperson[cnt].dis = abs(myperson[cnt].x-mystair[i].x)+abs(myperson[cnt].y-mystair[i].y);
-        makecase(cnt+1);
-    }
-    
-}
+
 int main(){
     int tc;
     cin>>tc;
-    for(int t=1;t<=tc;t++ ){
-        cin>>n;
-        myperson.clear();
-        mystair.clear();
-        solution=987987987;
+    for(int t=1;t<=tc;t++){
+        solution=0;
+        cin>>n>>m>>c;
         for(int i=0;i<n;i++){
-            for(int j=0;j<n;j++){
+            for(int j=0;j<n;j++)
                 cin>>mymap[i][j];
-                if(mymap[i][j]==1)
-                    myperson.push_back({i,j,0,0,0,0});
-                else if(mymap[i][j]>=2)
-                    mystair.push_back({i,j,mymap[i][j],0});
-            }
         }
-        makecase(0);
+        simulation(0,0,0,0);
         cout<<"#"<<t<<" "<<solution<<"\n";
     }
 }
