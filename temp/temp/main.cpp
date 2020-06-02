@@ -1,107 +1,130 @@
 #include <iostream>
-#include <queue>
-#include <algorithm>
+#include <vector>
 using namespace std;
-const int MAX=17;
+const int MAX=14;
 
-int n,w,h;
-int mymap[MAX][MAX]={0,};
-int col_top[MAX]={0,};
-int dx[4]={-1,0,1,0};
-int dy[4]={0,-1,0,1};
-int sol=987987987;
+class horse{
+public:
+    int idx;
+    int x;
+    int y;
+    int dir;
+};
+
+int n,k;
+int mymap[MAX][MAX];
+vector <horse> horses;
+vector <horse> mydata[MAX][MAX];
+int dx[5]={0,0,0,-1,1};
+int dy[5]={0,1,-1,0,0};
+int reverse_dir[5]={0,2,1,4,3};
+bool final_flag=false;
+int solution=-1;
 bool range(int x,int y){
-    return 0<=x && x<h && 0<=y && y<w;
-}
-void remove_stone(int row,int col){
-    int cnt=mymap[row][col]-1;
-    mymap[row][col]=0;
-    for(int i=0;i<4;i++){
-        int temp_x=row; int temp_y=col;
-        for(int j=0;j<cnt;j++){
-            temp_x+=dx[i]; temp_y+=dy[i];
-            
-            if(!range(temp_x,temp_y)) break;
-            if(mymap[temp_x][temp_y]>1) remove_stone(temp_x,temp_y);
-            else if(mymap[temp_x][temp_y]==1) mymap[temp_x][temp_y]=0;
-        }
-    }
+    return 1<=x && x<=n && 1<=y && y<=n;
 }
 
-void move_stone(){
-    for(int j=0;j<w;j++){
-        queue <int> q;
-        bool flag=false;
-        for(int i=h-1;i>=0;i--){
-            if(mymap[i][j]!=0){
-                flag=true;
-                q.push(mymap[i][j]);
-            }
-        }
-        if(!flag) {
-            col_top[j]=-1;
-            continue;
-        }
-        for(int i=h-1;i>=0;i--){
-            if(!q.empty()){
-                col_top[j]=i;
-                mymap[i][j]=q.front();
-                q.pop();
-            }
-            else mymap[i][j]=0;
+bool finalcheck(int x,int y){
+    if(mydata[x][y].size()>=4) return true;
+    else return false;
+}
+void white(int idx,int x,int y){
+    horse leader=horses[idx];
+    int next_x =x+dx[leader.dir]; int next_y =y+dy[leader.dir];
+    int idx2=0;
+    for(int i=0;i<mydata[x][y].size();i++){
+        if(mydata[x][y][i].idx==idx){
+            idx2=i;
+            break;
         }
     }
+    for(int i=idx2;i<mydata[x][y].size();i++){
+        horses[mydata[x][y][i].idx].x=x+dx[leader.dir];
+        horses[mydata[x][y][i].idx].y=y+dy[leader.dir];
+        mydata[next_x][next_y].push_back(horses[mydata[x][y][i].idx]);
+        mydata[x][y].erase(mydata[x][y].begin()+i);
+        i--;
+    }
+    final_flag=finalcheck(next_x,next_y);
 }
-
-void init(){
-    fill(col_top,col_top+MAX,-1);
-    fill(&mymap[0][0],&mymap[0][0]+MAX*MAX,0);
-    sol=987987987;
+void red(int idx,int x,int y){
+    horse leader=horses[idx];
+    int next_x =x+dx[leader.dir]; int next_y =y+dy[leader.dir];
+    int idx2=0;
+    for(int i=0;i<mydata[x][y].size();i++){
+        if(mydata[x][y][i].idx==idx){
+            idx2=i;
+            break;
+        }
+    }
+    
+    for(int i = int(mydata[x][y].size())-1;i>=idx2;i--){
+        horses[mydata[x][y][i].idx].x=x+dx[leader.dir];
+        horses[mydata[x][y][i].idx].y=y+dy[leader.dir];
+        mydata[next_x][next_y].push_back(horses[mydata[x][y][i].idx]);
+    }
+    for(int i=idx2;i<mydata[x][y].size();i++){
+        mydata[x][y].erase(mydata[x][y].begin()+i);
+        i--;
+    }
+    final_flag=finalcheck(next_x,next_y);
+}
+void blue(int idx,int x,int y){
+    horses[idx].dir=reverse_dir[horses[idx].dir];
+    for(int i=0;i<mydata[x][y].size();i++){
+        if(mydata[x][y][i].idx==idx){
+            mydata[x][y][i].dir=horses[idx].dir;
+            break;
+        }
+    }
+    int x_next = x+dx[horses[idx].dir]; int y_next = y+dy[horses[idx].dir];
+    
+    if(!range(x_next,y_next) ||mymap[x_next][y_next]==2)
+        return;
+    
+    else if(mymap[x_next][y_next]==0)
+        white(idx,x,y);
+    
+    else
+        red(idx,x,y);
 }
 
 void simulation(int cnt){
-    if(cnt>=n){
-        int ans=0;
-        for(int i=0;i<h;i++){
-            for(int j=0;j<w;j++)
-                if(mymap[i][j]>0) ans++;
+    if(cnt>1000) return;
+    
+    for(int i=1;i<=k;i++){
+        horse current = horses[i];
+        horse next = {current.idx,current.x+dx[current.dir],current.y+dy[current.dir],current.dir};
+        if(!range(next.x,next.y) ||mymap[next.x][next.y]==2)
+            blue(i,current.x,current.y);
+        
+        else if(mymap[next.x][next.y]==0)
+            white(i,current.x,current.y);
+        
+        else
+            red(i,current.x,current.y);
+        if(final_flag){
+            solution=cnt;
+            return;
         }
-        sol = sol < ans ? sol : ans;
-        return;
     }
-    for(int i=0;i<w;i++){
-        if(col_top[i]==-1) {
-            simulation(cnt+1);
-            continue;
-        }
-        int copy_map[MAX][MAX]={0,};
-        int copy_col_top[MAX]={0,};
-        copy(&mymap[0][0],&mymap[0][0]+MAX*MAX,&copy_map[0][0]);
-        copy(col_top,col_top+MAX,copy_col_top);
-        remove_stone(col_top[i],i);
-        move_stone();
-        simulation(cnt+1);
-        copy(&copy_map[0][0],&copy_map[0][0]+MAX*MAX,&mymap[0][0]);
-        copy(copy_col_top,copy_col_top+MAX,col_top);
-    }
+    simulation(cnt+1);
 }
 
 int main(){
-    int tc;
-    cin>>tc;
-    for(int t=1;t<=tc;t++){
-        init();
-        cin>>n>>w>>h;
-        for(int i=0;i<h;i++){
-            for(int j=0;j<w;j++){
-                cin>>mymap[i][j];
-                if(mymap[i][j]>0 && col_top[j]==-1)
-                    col_top[j]=i;
-            }
-        }
-        
-        simulation(0);
-        
-        cout<<"#"<<t<<" "<<sol<<"\n";
+    cin>>n>>k;
+    for(int i=1;i<=n;i++){
+        for(int j=1;j<=n;j++)
+            cin>>mymap[i][j];
     }
+    horses.push_back({0,0,0});
+    for(int i=1;i<=k;i++){
+        int a,b,c;
+        cin>>a>>b>>c;
+        horses.push_back({i,a,b,c});
+        mydata[a][b].push_back({i,a,b,c});
+    }
+    simulation(1);
+    cout<<solution;
+    
 }
